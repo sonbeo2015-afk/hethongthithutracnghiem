@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ thống thi thử trắc nghiệm</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f8fafc;
+      background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+      background-size: 24px 24px;
+      scroll-behavior: smooth;
+    }
+
+    #raw-data {
+      display: none;
+    }
+
+    /* Hiệu ứng Glassmorphism Liquid Glass dày dặn, sang trọng */
+    .liquid-glass {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: none;
+      /* HOẶC đổi thành 1px solid #e2e8f0 để có viền mỏng tinh tế */
+      box-shadow: 0 12px 35px -10px rgba(15, 23, 42, 0.08);
+    }
+
+    /* Thẻ đáp án bo góc sâu mềm mại */
+    .answer-card {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid #e2e8f0;
+    }
+
+    .answer-card:hover {
+      border-color: #6366f1;
+      background-color: rgba(99, 102, 241, 0.04);
+      transform: translateY(-1px);
+    }
+
+    /* Trạng thái đáp án được chọn năng động trẻ trung */
+    .selected-answer {
+      border-color: #6395f1 !important;
+      border-width: 2px !important;
+      background: rgba(99, 102, 241, 0.08) !important;
+      color: #312e81 !important;
+      box-shadow: 0 6px 16px -4px rgba(99, 102, 241, 0.15);
+    }
+
+    .focus-highlight {
+      animation: highlight-pulse 1s ease-out;
+      border-width: 2px !important;
+    }
+
+    @keyframes highlight-pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+        border-color: #6366f1;
+      }
+
+      100% {
+        box-shadow: 0 0 0 12px rgba(99, 102, 241, 0);
+        border-color: #e2e8f0;
+      }
+    }
+
+    .report-item.hidden {
+      display: none;
+    }
+
+    /* Bộ lọc kết quả active */
+    .filter-active {
+      border-color: #6366f1 !important;
+      background-color: #ffffff !important;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+    }
+
+    .modal-enter {
+      animation: modal-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes modal-in {
+      from {
+        opacity: 0;
+        transform: scale(0.96) translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .mark-btn.active {
+      color: #f43f5e;
+      fill: #f43f5e;
+    }
+
+    /* Tùy biến thanh cuộn dẹt tinh tế mượt mà */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6366f1;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen text-slate-900 antialiased pb-16">
+
+  <div id="submit-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-950/20 backdrop-blur-md"></div>
+    <div class="relative liquid-glass w-full max-w-sm rounded-2xl p-6 modal-enter">
+      <div class="text-center">
+        <h3 class="text-lg font-800 text-slate-900 mb-2 tracking-tight uppercase">Nộp bài kiểm tra?</h3>
+        <p id="modal-msg" class="text-sm text-slate-600 mb-6 font-semibold"></p>
+        <div class="flex flex-col gap-2">
+          <button onclick="calculateScore()"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all text-xs uppercase tracking-wider shadow-md shadow-indigo-600/10 active:scale-[0.99]">Xác
+            nhận nộp bài</button>
+          <button onclick="closeModal()"
+            class="w-full bg-slate-200/80 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-all text-xs uppercase tracking-wider">Tiếp
+            tục làm bài</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" class="max-w-5xl mx-auto py-8 px-4">
+
+    <div id="start-screen"
+      class="max-w-lg mx-auto bg-white/95 rounded-2xl shadow-sm p-8 text-center mt-16 relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-1.5"></div>
+      <h1 class="text-2xl font-800 text-slate-900 mb-1.5 tracking-tight uppercase">HỆ THỐNG THI THỬ TRẮC NGHIỆM</h1>
+      <h2 class="text-xs font-700 text-indigo-600 mb-6 uppercase tracking-widest">ĐỀ THI THỬ LỊCH SỬ ĐẢNG</h2>
+      <p class="text-slate-600 mb-8 text-sm font-semibold leading-relaxed">Hệ thống tự động tạo đề thi gồm 20 câu hỏi
+        ngẫu nhiên từ ngân hàng dữ liệu gốc giúp hỗ trợ quá trình tự sát hạch kiến thức ôn tập.</p>
+
+      <button onclick="initQuiz()"
+        class="bg-slate-950 hover:bg-slate-900 text-white font-bold py-3.5 px-10 rounded-xl transition-all text-xs uppercase tracking-widest shadow-lg shadow-slate-950/10 active:scale-[0.98]">
+        Bắt đầu làm bài
+      </button>
+
+      <div class="mt-8 border-t border-slate-200 pt-4">
+        <button onclick="resetApp()"
+          class="text-slate-400 hover:text-rose-600 text-[10px] font-700 uppercase tracking-widest transition-colors">
+          Cài đặt lại hệ thống & Xóa câu đánh dấu cũ
+        </button>
+      </div>
+    </div>
+
+    <div id="quiz-screen" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <div class="lg:col-span-3">
+        <div class="liquid-glass p-4 rounded-2xl sticky top-6 text-center">
+          <h3 class="font-800 text-slate-500 mb-4 uppercase text-[10px] tracking-widest">Tiến độ bài làm</h3>
+
+          <div id="palette-grid" class="grid grid-cols-5 gap-2 mb-6"></div>
+
+          <button onclick="openModal()"
+            class="w-full bg-slate-950 text-white font-bold py-2.5 rounded-xl hover:bg-slate-900 transition-all text-xs uppercase tracking-wider shadow-md active:scale-[0.98] mb-4">
+            Nộp bài ngay
+          </button>
+
+          <div class="text-left space-y-2.5 text-xs font-700 text-slate-500 pt-4 border-t border-slate-300/40">
+            <div class="flex items-center gap-2.5">
+              <div class="w-3.5 h-3.5 bg-indigo-600 rounded-md"></div> Đã chọn đáp án
+            </div>
+            <div class="flex items-center gap-2.5">
+              <div class="w-3.5 h-3.5 bg-slate-950 rounded-md"></div> Câu trang hiện tại
+            </div>
+            <div class="flex items-center gap-2.5">
+              <div class="w-3.5 h-3.5 bg-white rounded-md border border-slate-300"></div> Chưa trả lời (trang khác)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-9 space-y-5">
+        <div class="liquid-glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-l-indigo-600">
+          <div class="flex flex-col">
+            <span class="text-[9px] uppercase font-800 text-slate-500 tracking-wider">Phân trang bài thi</span>
+            <span class="font-800 text-lg text-slate-900">TRANG <span id="page-number-ui"
+                class="text-indigo-600">1</span>/2</span>
+          </div>
+          <div class="text-right">
+            <span class="text-[9px] uppercase font-800 text-slate-500 tracking-wider">Tiến trình hiện tại</span>
+            <span class="block font-800 text-lg text-indigo-950" id="completion-status">0/20 câu</span>
+          </div>
+        </div>
+
+        <div id="questions-container" class="space-y-4"></div>
+
+        <div class="flex justify-between items-center bg-white/90 p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex gap-2">
+            <button id="btn-prev" onclick="changePage(-1)"
+              class="px-5 py-2.5 font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 border border-slate-300/60 transition-all disabled:opacity-30 disabled:pointer-events-none text-xs uppercase tracking-wider">
+              ← Trước
+            </button>
+            <button id="btn-next" onclick="changePage(1)"
+              class="px-5 py-2.5 font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all text-xs uppercase tracking-wider shadow-md disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-60 disabled:pointer-events-none disabled:shadow-none">
+              Sau →
+            </button>
+          </div>
+          <button onclick="openModal()"
+            class="px-6 py-2.5 font-bold text-white bg-slate-950 rounded-xl hover:bg-slate-900 transition-all text-xs uppercase tracking-wider shadow-md">
+            Nộp bài
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden space-y-6">
+
+      <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+        <h2 class="text-xl font-800 text-center text-slate-900 mb-6 tracking-tight uppercase">Báo cáo kết quả sát hạch
+        </h2>
+
+        <div class="flex flex-col md:flex-row items-center justify-around gap-6 mb-6 border-b border-slate-200 pb-6">
+          <div class="text-center bg-slate-50 p-4 border border-slate-200 rounded-xl w-full md:max-w-[180px]">
+            <div class="text-[9px] font-800 text-slate-400 uppercase tracking-widest mb-1">Điểm số đạt</div>
+            <div class="text-4xl font-800 text-indigo-600 mb-0.5" id="final-score">0/20</div>
+            <div class="text-sm font-700 text-slate-500" id="final-percent">0%</div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 flex-1 w-full">
+            <div onclick="filterReport('correct', this)"
+              class="filter-btn bg-emerald-50/60 p-3 rounded-xl border border-emerald-200 hover:border-emerald-400 cursor-pointer transition-all">
+              <p class="text-[10px] font-800 text-emerald-700 uppercase tracking-wider mb-0.5">Đúng</p>
+              <p id="count-correct" class="text-xl font-800 text-emerald-900">0</p>
+            </div>
+            <div onclick="filterReport('wrong', this)"
+              class="filter-btn bg-rose-50/60 p-3 rounded-xl border border-rose-200 hover:border-rose-400 cursor-pointer transition-all">
+              <p class="text-[10px] font-800 text-rose-700 uppercase tracking-wider mb-0.5">Sai</p>
+              <p id="count-wrong" class="text-xl font-800 text-rose-900">0</p>
+            </div>
+            <div onclick="filterReport('skipped', this)"
+              class="filter-btn bg-amber-50/60 p-3 rounded-xl border border-amber-200 hover:border-amber-400 cursor-pointer transition-all">
+              <p class="text-[10px] font-800 text-amber-700 uppercase tracking-wider mb-0.5">Bỏ qua</p>
+              <p id="count-skipped" class="text-xl font-800 text-amber-900">0</p>
+            </div>
+            <div onclick="filterReport('marked', this)"
+              class="filter-btn bg-indigo-50/60 p-3 rounded-xl border border-indigo-200 hover:border-indigo-400 cursor-pointer transition-all">
+              <p class="text-[10px] font-800 text-indigo-700 uppercase tracking-wider mb-0.5">Đã lưu lại</p>
+              <p id="count-marked" class="text-xl font-800 text-indigo-900">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-2.5">
+          <button onclick="location.reload()"
+            class="flex-1 bg-slate-950 text-white font-bold py-2.5 rounded-xl hover:bg-slate-900 transition-all text-xs uppercase tracking-wider">Làm
+            đề sát hạch mới</button>
+          <button onclick="filterReport('all', this)"
+            class="flex-1 bg-indigo-600 text-white font-bold py-2.5 rounded-xl hover:bg-indigo-700 transition-all text-xs uppercase tracking-wider shadow-md">Xem
+            tất cả câu hỏi</button>
+        </div>
+      </div>
+
+      <div id="report-section" class="space-y-4 pt-2">
+        <h3 class="text-sm font-800 text-slate-800 uppercase flex items-center gap-2">
+          <div class="w-1.5 h-4 bg-indigo-600 rounded-md"></div>
+          Bộ lọc hiển thị: <span id="filter-label" class="text-indigo-600">Full 20 câu</span>
+        </h3>
+        <div id="report-container" class="space-y-4"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="raw-data">
+    <!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Trắc nghiệm Lịch sử Đảng — 100 câu</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #eef2f7;
+      padding: 20px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .q {
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .ans {
+      padding: 6px 10px;
+      margin: 6px 0;
+      border-radius: 6px;
+      background: #f9fafb;
+    }
+
+    .ans strong {
+      color: #2563eb;
+    }
+
+    h1 {
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Ngân hàng câu hỏi trắc nghiệm Lịch sử Đảng (100 câu)</h1>
+
+    <!-- Câu 1 -->
+    <div class="card">
+      <div class="q">Câu 1. Thực dân Pháp nổ súng tấn công xâm lược Việt Nam vào thời gian nào?</div>
+      <div class="ans">1/9/1857.</div>
+      <div class="ans">9/1/1858.</div>
+      <div class="ans"><strong>1/9/1858.</strong></div>
+      <div class="ans">5/6/1862.</div>
+    </div>
+
+    <!-- Câu 2 -->
+    <div class="card">
+      <div class="q">Câu 2. Hiệp ước nào đánh dấu việc thực dân Pháp hoàn thành quá trình xâm lược Việt Nam và nước ta đã trở thành thuộc địa của thực dân Pháp?</div>
+      <div class="ans">Hòa ước Nhâm Tuất (5/6/1862).</div>
+      <div class="ans">Hiệp ước Giáp Tuất (15/3/1874).</div>
+      <div class="ans">Hiệp ước Quý Mùi (25/08/1883).</div>
+      <div class="ans"><strong>Hiệp ước Pa-tơ-nốt (6/6/1884).</strong></div>
+    </div>
+
+    <!-- Câu 3 -->
+    <div class="card">
+      <div class="q">Câu 3. Vào đầu thế kỷ XX, xã hội Việt Nam có sự phân hóa gồm những giai cấp, tầng lớp nào?</div>
+      <div class="ans">Địa chủ, nông dân, công nhân, tư sản.</div>
+      <div class="ans"><strong>Địa chủ, nông dân, công nhân, tư sản, tiểu tư sản.</strong></div>
+      <div class="ans">Địa chủ, nông dân, công nhân, sĩ phu, tư sản.</div>
+      <div class="ans">Địa chủ phong kiến và nông dân.</div>
+    </div>
+
+    <!-- Câu 4 -->
+    <div class="card">
+      <div class="q">Câu 4. Đặc điểm ra đời của giai cấp công nhân Việt Nam như thế nào?</div>
+      <div class="ans">Ra đời trước giai cấp tư sản, trong cuộc khai thác thuộc địa lần thứ nhất của thực dân Pháp.
+      </div>
+      <div class="ans">Phần lớn xuất thân từ nông dân.</div>
+      <div class="ans">Chịu sự áp bức và bóc lột nặng nề của đế quốc, phong kiến và tư sản.</div>
+      <div class="ans"><strong>Cả A, B và C.</strong></div>
+    </div>
+
+    <!-- Câu 5 -->
+    <div class="card">
+      <div class="q">Câu 5. Mâu thuẫn gay gắt cần được giải quyết trước hết trong xã hội VN đầu thế kỷ XX là mâu thuẫn nào?</div>
+      <div class="ans">Mâu thuẫn giữa giai cấp nông dân với giai cấp địa chủ phong kiến.</div>
+      <div class="ans"><strong>Mâu thuẫn giữa dân tộc Việt Nam với đế quốc xâm lược và tay sai của chúng.</strong></div>
+      <div class="ans">Mâu thuẫn giữa công nhân và nông dân với đế quốc và phong kiến.</div>
+      <div class="ans">Mâu thuẫn giữa giai cấp công nhân với giai cấp tư sản.</div>
+    </div>
+
+    <!-- Câu 6 -->
+    <div class="card">
+      <div class="q">Câu 6. Khi nào phong trào công nhân Việt Nam bước đầu chuyển từ đấu tranh tự phát sang tự giác?
+      </div>
+      <div class="ans">Khi tổ chức công hội ở Sài Gòn được thành lập năm 1920.</div>
+      <div class="ans"><strong>Khi cuộc bãi công Ba Son diễn ra năm 1925.</strong></div>
+      <div class="ans">Khi ba tổ chức cộng sản ở Việt Nam ra đời năm 1929.</div>
+      <div class="ans">Khi Đảng Cộng sản Việt Nam ra đời năm 1930.</div>
+    </div>
+
+    <!-- Câu 7 -->
+    <div class="card">
+      <div class="q">Câu 7. Tại sao năm 1925, Nguyễn Ái Quốc không thành lập ngay một Đảng Cộng sản mà lại thành lập Hội Việt Nam Cách mạng thanh niên?</div>
+      <div class="ans"><strong>Do những điều kiện thành lập Đảng Cộng sản ở Việt Nam chưa chín muồi.</strong></div>
+      <div class="ans">Do Chủ nghĩa Mác- Lênin chưa được truyền bá sâu rộng ở Việt Nam.</div>
+      <div class="ans">Do phong trào yêu nước vẫn nằm trong quỹ đạo của khuynh hướng dân chủ tư sản.</div>
+      <div class="ans">Do phong trào công nhân vẫn dừng ở trình độ tự phát.</div>
+    </div>
+
+    <!-- Câu 8 -->
+    <div class="card">
+      <div class="q">Câu 8. Tác phẩm đầu tiên vạch ra các vấn đề về chiến lược và sách lược của cách mạng VN là tác phẩm nào?</div>
+      <div class="ans">Bản án chế độ thực dân Pháp.</div>
+      <div class="ans"><strong>Đường Kách mệnh.</strong></div>
+      <div class="ans">Kháng chiến nhất định thắng lợi.</div>
+      <div class="ans">Vấn đề dân cày.</div>
+    </div>
+
+    <!-- Câu 9 -->
+    <div class="card">
+      <div class="q">Câu 9. Trong tác phẩm Đường Kách mệnh, Nguyễn Ái Quốc đã khẳng định : “Đảng muốn vững thì phải có ... làm cốt, trong Đảng ai cũng phải hiểu, ai cũng phải theo ... ấy. Đảng mà không có ... cũng giống như người  không có trí khôn, tàu không có bàn chỉ nam”. Hãy điền từ còn thiếu vào chỗ ba chấm?</div>
+      <div class="ans">Đường lối.</div>
+      <div class="ans"><strong>Chủ nghĩa.</strong></div>
+      <div class="ans">Tư tưởng.</div>
+      <div class="ans">Lý luận.</div>
+    </div>
+
+    <!-- Câu 10 -->
+    <div class="card">
+      <div class="q">Câu 10. Hội Việt Nam Cách mạng thanh niên được coi là tổ chức tiền thân của Đảng Cộng sản Việt Nam vì?</div>
+      <div class="ans"><strong>Góp phần chuẩn bị chính trị, tư tưởng, tổ chức cho sự ra đời của Đảng Cộng sản Việt Nam.</strong></div>
+      <div class="ans">Góp phần làm cho khuynh hướng vô sản ngày càng thắng thế trong phong trào dân tộc.</div>
+      <div class="ans">Góp phần truyền bá Chủ nghĩa Mác-Lênin và lý luận giải phóng dân tộc vào Việt Nam.</div>
+      <div class="ans">Góp phần thúc đẩy sự phát triển của phong trào công nhân Việt Nam từ tự phát sang tự giác.</div>
+    </div>
+
+    <!-- Câu 11 -->
+    <div class="card">
+      <div class="q">Câu 11. Hội nghị thành lập Đảng đầu năm 1930 được tổ chức vì:</div>
+      <div class="ans">Được sự uỷ nhiệm của Quốc tế Cộng sản.</div>
+      <div class="ans">Nguyễn Ái Quốc nhận được Chỉ thị của Quốc tế Cộng sản.</div>
+      <div class="ans"><strong>Yêu cầu thống nhất của cách mạng Việt Nam và sự chủ động của Nguyễn Ái Quốc.</strong>
+      </div>
+      <div class="ans">Các tổ chức cộng sản trong nước đề nghị.</div>
+    </div>
+
+    <!-- Câu 12 -->
+    <div class="card">
+      <div class="q">Câu 12. Hội nghị thành lập Đảng Cộng sản Việt Nam diễn ra vào thời gian nào?</div>
+      <div class="ans"><strong>6/1/1930 - 7/2/1930.</strong></div>
+      <div class="ans">3/2/1930 - 7/2/1930.</div>
+      <div class="ans">6/1/1930 - 3/2/1930.</div>
+      <div class="ans">16/1/1930 - 7/2/1930.</div>
+    </div>
+
+    <!-- Câu 13 -->
+    <div class="card">
+      <div class="q">Câu 13. Hội nghị thành lập Đảng Cộng sản Việt Nam (1930) đã thông qua các văn kiện nào sau đây:
+      </div>
+      <div class="ans">Chánh cương vắn tắt.</div>
+      <div class="ans">Sách lược vắn tắt.</div>
+      <div class="ans">Điều lệ vắn tắt và Chương trình tóm tắt.</div>
+      <div class="ans"><strong>Cả A, B và C.</strong></div>
+    </div>
+
+    <!-- Câu 14 -->
+    <div class="card">
+      <div class="q">Câu 14. Đâu KHÔNG PHẢI là nội dung Hội nghị thành lập Đảng?</div>
+      <div class="ans">Các đại biểu đồng ý tán thành việc hợp nhất các tổ chức cộng sản để thành lập ra Đảng Cộng sản VN.</div>
+      <div class="ans"><strong>Ngày 24/2/1930, Đông Dương Cộng sản Liên đoàn gia nhập vào Đảng Cộng sản Việt Nam.</strong></div>
+      <div class="ans">Thông qua các văn kiện: Chánh cương vắn tắt, Sách lược vắn tắt, Chương trình tóm tắt và Điều lệ vắn tắt của Đảng do Nguyễn Ái Quốc soạn thảo.</div>
+      <div class="ans">Hội nghị định ra kế hoạch thống nhất trong nước và giao quyền cho các đại biểu về nước thực hiện.
+      </div>
+    </div>
+
+    <!-- Câu 15 -->
+    <div class="card">
+      <div class="q">Câu 15. Điền nội dung còn thiếu vào câu sau: “Sự kiện Đảng Cộng sản Việt Nam ra đời thể hiện bước phát triển biện chứng quá trình vận động của cách mạng Việt Nam - sự phát triển về chất từ ............... đến ........... đến ............ trên nền tảng chủ nghĩa Mác-Lênin và quan điểm cách mạng của Nguyễn Ái Quốc”.</div>
+      <div class="ans">Đảng Cộng sản Việt Nam/ Hội Việt Nam cách mạng thanh niên/ 3 tổ chức cộng sản.</div>
+      <div class="ans">3 tổ chức cộng sản/ Hội Việt Nam cách mạng thanh niên/ Đảng Cộng sản Việt Nam.</div>
+      <div class="ans">Tân Việt cách mạng đảng/ 3 tổ chức cộng sản/ Đảng Cộng sản Việt Nam.</div>
+      <div class="ans"><strong>Hội Việt Nam cách mạng thanh niên/ 3 tổ chức cộng sản/ Đảng Cộng sản Việt Nam.</strong>
+      </div>
+    </div>
+
+    <!-- Câu 16 -->
+    <div class="card">
+      <div class="q">Câu 16. Cương lĩnh chính trị đầu tiên của Đảng đã xác định phương hướng chiến lược của cách mạng VN là:</div>
+      <div class="ans">Đánh đổ đế quốc và phong kiến làm cho nước Việt Nam hoàn toàn độc lập.</div>
+      <div class="ans"><strong>Tư sản dân quyền cách mạng và thổ địa cách mạng để đi tới xã hội cộng sản.</strong>
+      </div>
+      <div class="ans">Làm cách mạng tư sản dân quyền có tính chất thổ địa và phản đế.</div>
+      <div class="ans">Cả A và B.</div>
+    </div>
+
+    <!-- Câu 17 -->
+    <div class="card">
+      <div class="q">Câu 17. Văn kiện nào của Đảng đặt nhiệm vụ chống đế quốc lên hàng đầu?</div>
+      <div class="ans"><strong>Cương lĩnh chính trị đầu tiên do Hội nghị thành lập Đảng thông qua (1930).</strong></div>
+      <div class="ans">Luận cương chính trị của Đảng Cộng sản Đông Dương (10-1930).</div>
+      <div class="ans">Thư của Trung ương gửi cho các cấp đảng bộ (12-1930).</div>
+      <div class="ans">Nghị quyết Đại hội lần thứ nhất của Đảng (3-1935).</div>
+    </div>
+
+    <!-- Câu 18 -->
+    <div class="card">
+      <div class="q">Câu 18. Trong các điểm sau, điểm khác nhau giữa Cương lĩnh chính trị đầu tiên và Luận cương chính trị tháng 10/1930 là:</div>
+      <div class="ans"><strong>Chủ trương tập hợp lực lượng cách mạng.</strong></div>
+      <div class="ans">Phương hướng chiến lược của cách mạng.</div>
+      <div class="ans">Giai cấp lãnh đạo cách mạng.</div>
+      <div class="ans">Quan hệ quốc tế.</div>
+    </div>
+
+    <!-- Câu 19 -->
+    <div class="card">
+      <div class="q">Câu 19. Nhiệm vụ cách mạng được Đảng xác định trong giai đoạn 1936-1939 là gì?</div>
+      <div class="ans">Tịch thu ruộng đất của địa chủ chia cho dân cày.</div>
+      <div class="ans">Đánh đuổi thực dân pháp, Đông Dương hoàn toàn độc lập.</div>
+      <div class="ans"><strong>Chống phát xít, chống chiến tranh đế quốc, chống bọn phản động thuộc địa và tay sai, đòi tự do dân chủ, cơm áo, hoà bình.</strong></div>
+      <div class="ans">Cả A, B, C đều đúng.</div>
+    </div>
+
+    <!-- Câu 20 -->
+    <div class="card">
+      <div class="q">Câu 20. Dưới sự lãnh đạo của Đảng, hình thức tổ chức và đấu tranh của cách mạng Việt Nam trong giai đoạn 1936-1939 là gì?</div>
+      <div class="ans">Công khai, hợp pháp.</div>
+      <div class="ans">Nửa công khai, nửa hợp pháp.</div>
+      <div class="ans">Bí mật, bất hợp pháp.</div>
+      <div class="ans"><strong>Tất cả các hình thức trên.</strong></div>
+    </div>
+
+    <!-- Câu 21 -->
+    <div class="card">
+      <div class="q">Câu 21. Lá cờ đỏ sao vàng lần đầu tiên xuất hiện trong cuộc khởi nghĩa nào?</div>
+      <div class="ans">Khởi nghĩa Bắc Sơn (1940).</div>
+      <div class="ans"><strong>Khởi nghĩa Nam Kì (1940).</strong></div>
+      <div class="ans">Binh biến Đô Lương (1941).</div>
+      <div class="ans">Khởi nghĩa Ba Tơ (1945).</div>
+    </div>
+
+    <!-- Câu 22 -->
+    <div class="card">
+      <div class="q">Câu 22. Chủ trương nào dưới đây thể hiện rõ nhất sự chuyển hướng chỉ đạo chiến lược cách mạng của Đảng trong những năm 1939 - 1941?</div>
+      <div class="ans"><strong>Đặt nhiệm vụ giải phóng dân tộc lên hàng đầu.</strong></div>
+      <div class="ans">Giải quyết vấn đề dân tộc trong khuôn khổ từng nước Đông Dương.</div>
+      <div class="ans">Quyết định phải xúc tiến ngay công tác khởi nghĩa vũ trang.</div>
+      <div class="ans">Phát động một cao trào kháng Nhật, cứu nước làm tiền đề cho cuộc Tổng khởi nghĩa.</div>
+    </div>
+
+    <!-- Câu 23 -->
+    <div class="card">
+      <div class="q">Câu 23. Việt Minh là tên gọi tắt của mặt trận dân tộc nào dưới đây?</div>
+      <div class="ans">Mặt trận Liên minh Việt Nam.</div>
+      <div class="ans">Mặt trận Liên Việt đồng minh.</div>
+      <div class="ans">Mặt trận Việt Nam đồng minh.</div>
+      <div class="ans"><strong>Mặt trận Việt Nam độc lập đồng minh.</strong></div>
+    </div>
+
+    <!-- Câu 24 -->
+    <div class="card">
+      <div class="q">Câu 24. Việc thành lập Mặt trận Việt Minh (1941) là sự chuẩn bị của Đảng về:</div>
+      <div class="ans"><strong>Lực lượng chính trị.</strong></div>
+      <div class="ans">Lực lượng vũ trang.</div>
+      <div class="ans">Nhân sự cho Ban Chấp hành Trung ương mới.</div>
+      <div class="ans">Cả A, B, C đều sai.</div>
+    </div>
+
+    <!-- Câu 25 -->
+    <div class="card">
+      <div class="q">Câu 25. Đội Việt Nam tuyên truyền giải phóng quân được thành lập vào thời gian nào?</div>
+      <div class="ans"><strong>22/12/1944.</strong></div>
+      <div class="ans">24/12/1944.</div>
+      <div class="ans">13/8/1945.</div>
+      <div class="ans">16/8/1945.</div>
+    </div>
+
+    <!-- Câu 26 -->
+    <div class="card">
+      <div class="q">Câu 26. Ai là người được giao nhiệm vụ thành lập Đội Việt Nam tuyên truyền giải phóng quân?</div>
+      <div class="ans">Văn Tiến Dũng.</div>
+      <div class="ans">Phạm Văn Đồng.</div>
+      <div class="ans"><strong>Võ Nguyên Giáp.</strong></div>
+      <div class="ans">Trường Chinh.</div>
+    </div>
+
+    <!-- Câu 27 -->
+    <div class="card">
+      <div class="q">Câu 27. Chỉ thị "Nhật - Pháp bắn nhau và hành động của chúng ta"ra đời khi nào?</div>
+      <div class="ans">10/3/1944.</div>
+      <div class="ans"><strong>12/3/1945.</strong></div>
+      <div class="ans">12/5/1945.</div>
+      <div class="ans">22/12/1946.</div>
+    </div>
+
+    <!-- Câu 28 -->
+    <div class="card">
+      <div class="q">Câu 28. Đâu là khẩu hiệu của cách mạng Việt Nam từ tháng 3/1945 đến tháng 8/1945?</div>
+      <div class="ans">Đánh đuổi Nhật - Pháp.</div>
+      <div class="ans"><strong>Đánh đuổi phát xít Nhật.</strong></div>
+      <div class="ans">Đánh đổ địa chủ, chia ruộng đất cho dân cày.</div>
+      <div class="ans">Kháng chiến, kiến quốc.</div>
+    </div>
+
+    <!-- Câu 29 -->
+    <div class="card">
+      <div class="q">Câu 29. Trong Chỉ thị “Nhật - Pháp bắn nhau và hành động của chúng ta”, Đảng chủ trương phát động cao trào cách mạng gì?</div>
+      <div class="ans">Cao trào dân chủ.</div>
+      <div class="ans">Cao trào phá kho thóc, giải quyết nạn đói.</div>
+      <div class="ans">Cao trào Tổng khởi nghĩa.</div>
+      <div class="ans"><strong>Cao trào kháng Nhật cứu nước.</strong></div>
+    </div>
+
+    <!-- Câu 30 -->
+    <div class="card">
+      <div class="q">Câu 30. Ngày 04/6/1945, Khu giải phóng Việt Bắc được thành lập và được xem là hình ảnh thu nhỏ của nước Việt Nam mới. Khu giải phóng Việt Bắc gồm một phần những tỉnh nào?</div>
+      <div class="ans">Cao Bằng, Bắc Cạn, Hà Tây, Tuyên Quang, Thái Nguyên.</div>
+      <div class="ans"><strong>Cao Bằng, Bắc Cạn, Lạng Sơn, Hà Giang, Tuyên Quang, Thái Nguyên.</strong></div>
+      <div class="ans">Hưng Yên, Bắc Cạn, Lạng Sơn, Hà Giang, Tuyên Quang, Thái Nguyên.</div>
+      <div class="ans">Cao Bằng, Bắc Cạn, Lạng Sơn, Hà Giang, Tuyên Quang, Yên Bái.</div>
+    </div>
+
+    <!-- Câu 31 -->
+    <div class="card">
+      <div class="q">Câu 31. Ngày 13/8/1945, Trung ương Đảng và Tổng bộ Việt Minh đã thông qua quyết định nào dưới đây?
+      </div>
+      <div class="ans">Quyết định khởi nghĩa ở Hà Nội.</div>
+      <div class="ans">Phát động cao trào kháng Nhật.</div>
+      <div class="ans">Thống nhất lực lượng vũ trang Việt Nam.</div>
+      <div class="ans"><strong>Phát lệnh Tổng khởi nghĩa trên cả nước.</strong></div>
+    </div>
+
+    <!-- Câu 32 -->
+    <div class="card">
+      <div class="q">Câu 32. Đảng quyết định phát động Tổng khởi nghĩa giành chính quyền trước khi quân Đồng minh vào Đông Dương vì:</div>
+      <div class="ans">Đó là lúc so sánh lực lượng có lợi nhất đối với cách mạng.</div>
+      <div class="ans">Đó là lúc kẻ thù cũ đã ngã gục nhưng kẻ thù mới chưa kịp đến.</div>
+      <div class="ans">Quân Đồng Minh có thể dựng lên một chính quyền trái với ý chí và nguyện vọng của nhân dân ta.
+      </div>
+      <div class="ans"><strong>Tất cả các lý do trên.</strong></div>
+    </div>
+
+    <!-- Câu 33 -->
+    <div class="card">
+      <div class="q">Câu 33. Cuộc Tổng khởi nghĩa giành chính quyền của nhân dân Việt Nam diễn ra thời gian nào?</div>
+      <div class="ans">Từ ngày 13/8 đến ngày 16/8 năm 1945.</div>
+      <div class="ans">Từ ngày 13/8 đến ngày 19/8 năm 1945.</div>
+      <div class="ans"><strong>Từ ngày 14/8 đến ngày 28/8 năm 1945.</strong></div>
+      <div class="ans">Từ ngày 14/8 đến ngày 30/8 năm 1945.</div>
+    </div>
+
+    <!-- Câu 34 -->
+    <div class="card">
+      <div class="q">Câu 34. Phát biểu nào sau đây là ĐÚNG:</div>
+      <div class="ans">Nhân dân Việt Nam giành chính quyền từ tay thực dân Pháp, trước khi quân Đồng minh vào Đông Dương.</div>
+      <div class="ans"><strong>Nhân dân Việt Nam giành chính quyền từ tay phát xít Nhật, trước khi quân Đồng minh vào Đông Dương.</strong></div>
+      <div class="ans">Nhân dân Việt Nam giành chính quyền từ tay thực dân Pháp, sau khi quân Đồng minh vào Đông Dương.
+      </div>
+      <div class="ans">Nhân dân Việt Nam giành chính quyền từ tay phát xít Nhật, sau khi quân Đồng minh vào Đông Dương.
+      </div>
+    </div>
+
+    <!-- Câu 35 -->
+    <div class="card">
+      <div class="q">Câu 35. Một trong những nguyên nhân khách quan quan trọng dẫn tới thắng lợi của Cách mạng tháng Tám (1945) là gì?</div>
+      <div class="ans">Sự viện trợ của Liên Xô, Trung Quốc.</div>
+      <div class="ans">Sự chuẩn bị của Đảng trong 15 năm.</div>
+      <div class="ans"><strong>Thắng lợi của phe Đồng minh trong cuộc Chiến tranh thế giới thứ 2.</strong></div>
+      <div class="ans">Truyền thống yêu nước của dân tộc.</div>
+    </div>
+
+    <!-- Câu 36 -->
+    <div class="card">
+      <div class="q">Câu 36. Ý nghĩa quốc tế của Cách mạng tháng Tám là gì?</div>
+      <div class="ans">Lật đổ ách thống trị của thực dân, phong kiến ở nước ta.</div>
+      <div class="ans">Cơ sở cho sự ra đời của nhà nước Việt Nam Dân chủ Cộng hòa.</div>
+      <div class="ans"><strong>Chọc thủng một khâu quan trọng trong hệ thống thuộc địa của chủ nghĩa đế quốc, mở đầu thời kỳ sụp đổ và tan rã của chủ nghĩa thực dân cũ.</strong></div>
+      <div class="ans">Cả A, B và C.</div>
+    </div>
+
+    <!-- Câu 37 -->
+    <div class="card">
+      <div class="q">Câu 37. Những khó khăn, thách thức đối với Việt Nam sau Cách mạng tháng Tám năm 1945 là:</div>
+      <div class="ans">Chính quyền Nhà nước vừa ra đời còn non trẻ.</div>
+      <div class="ans">Kinh tế kiệt quệ và nạn đói, thiên tai liên tiếp xảy ra.</div>
+      <div class="ans">Các thế lực thù địch bao vây, chống phá.</div>
+      <div class="ans"><strong>Tất cả các đáp án trên.</strong></div>
+    </div>
+
+    <!-- Câu 38 -->
+    <div class="card">
+      <div class="q">Câu 38. Đâu là câu nói của Chủ tịch Hồ Chí Minh về hoàn cảnh nước ta sau Cách mạng tháng Tám?</div>
+      <div class="ans">Chính quyền Việt Nam ra đời không tiền, không đồng minh và hầu như không vũ khí.</div>
+      <div class="ans"><strong>Vận mệnh dân tộc như ngàn cân treo sợi tóc.</strong></div>
+      <div class="ans">A và B đều đúng.</div>
+      <div class="ans">A và B đều sai.</div>
+    </div>
+
+    <!-- Câu 39 -->
+    <div class="card">
+      <div class="q">Câu 39. Thực dân Pháp đã nổ súng tấn công Sài Gòn, chính thức xâm lược nước ta lần thứ hai vào ngày nào?</div>
+      <div class="ans">28/8/1945.</div>
+      <div class="ans">2/9/1945.</div>
+      <div class="ans"><strong>23/9/1945.</strong></div>
+      <div class="ans">25/11/1945.</div>
+    </div>
+
+    <!-- Câu 40 -->
+    <div class="card">
+      <div class="q">Câu 40. Chủ trương và sách lược của Đảng trong việc đối phó với các lực lượng đế quốc sau Cách mạng tháng Tám là:</div>
+      <div class="ans">Thêm bạn, bớt thù.</div>
+      <div class="ans">Hoa-Việt thân thiện.</div>
+      <div class="ans">Độc lập về chính trị, nhân nhượng về kinh tế đối với Pháp.</div>
+      <div class="ans"><strong>Tất cả các đáp án trên.</strong></div>
+    </div>
+
+    <!-- Câu 41 -->
+    <div class="card">
+      <div class="q">Câu 41. Trong văn kiện “Kháng chiến kiến quốc”, Đảng xác định kẻ thù chính của nhân dân ta sau Cách mạng tháng Tám là:</div>
+      <div class="ans">Phát xít Nhật.</div>
+      <div class="ans">Quân đội Tưởng Giới Thạch.</div>
+      <div class="ans"><strong>Thực dân Pháp.</strong></div>
+      <div class="ans">Thực dân Anh.</div>
+    </div>
+
+    <!-- Câu 42 -->
+    <div class="card">
+      <div class="q">Câu 42. Câu “Chúng ta thà hy sinh tất cả, chứ nhất định không chịu mất nước, nhất định không chịu làm nô lệ” được viết trong tác phẩm nào?</div>
+      <div class="ans">Chỉ thị “Toàn dân kháng chiến” của Trung ương Đảng.</div>
+      <div class="ans"><strong>“Lời kêu gọi toàn quốc kháng chiến” của Chủ tịch Hồ Chí Minh.</strong></div>
+      <div class="ans">Tác phẩm “Kháng chiến nhất định thắng lợi” của Tổng Bí thư Trường Chinh.</div>
+      <div class="ans">“Lời kêu gọi đồng bào và chiến sĩ toàn quốc kháng chiến chống Mỹ, cứu nước” của Chủ tịch HCM.
+      </div>
+    </div>
+
+    <!-- Câu 43 -->
+    <div class="card">
+      <div class="q">Câu 43. Cuối tháng 12/1946, Trung ương Đảng và Chủ tịch HCM phát động cuộc kháng chiến toàn quốc vì:</div>
+      <div class="ans">Có sự ủng hộ của nhân dân Pháp.</div>
+      <div class="ans">Nhân dân Việt Nam đã có sự chuẩn bị về mọi mặt.</div>
+      <div class="ans">Chính phủ Việt Nam không muốn hòa với thực dân Pháp.</div>
+      <div class="ans"><strong>Trước lập trường thực dân ngoan cố của thực dân Pháp, nhân dân Việt Nam chỉ có một con đường đứng lên kháng chiến vì độc lập tự do.</strong></div>
+    </div>
+
+    <!-- Câu 44 -->
+    <div class="card">
+      <div class="q">Câu 44. Phương châm kháng chiến chống thực dân Pháp xâm lược được Đảng xác định là gì?</div>
+      <div class="ans">Tiến hành chiến tranh du kích.</div>
+      <div class="ans">Thực hiện tiến công kiên quyết và chủ động.</div>
+      <div class="ans"><strong>Tiến hành chiến tranh nhân dân, kháng chiến toàn dân, toàn diện, lâu dài, dựa vào sức mình là chính.</strong></div>
+      <div class="ans">Dựa vào lực lượng vũ trang 3 thứ quân.</div>
+    </div>
+
+    <!-- Câu 45 -->
+    <div class="card">
+      <div class="q">Câu 45. Quốc hội đầu tiên của nước Việt Nam Dân chủ Cộng hòa được bầu vào thời gian nào?</div>
+      <div class="ans">04/01/1946.</div>
+      <div class="ans">05/01/1946.</div>
+      <div class="ans"><strong>06/01/1946.</strong></div>
+      <div class="ans">07/01/1946.</div>
+    </div>
+
+    <!-- Câu 46 -->
+    <div class="card">
+      <div class="q">Câu 46. Đảng xác định nhiệm vụ hàng đầu của quân dân ta trong cuộc kháng chiến chống thực dân Pháp là:</div>
+      <div class="ans"><strong>Đánh đuổi bọn đế quốc xâm lược, giành độc lập và thống nhất thật sự cho dân tộc.</strong>
+      </div>
+      <div class="ans">Xoá bỏ những di tích phong kiến và nửa phong kiến, làm cho người cày có ruộng.</div>
+      <div class="ans">Phát triển chế độ dân chủ nhân dân gây cơ sở cho chủ nghĩa xã hội.</div>
+      <div class="ans">Tiến hành cách mạng xã hội chủ nghĩa.</div>
+    </div>
+
+    <!-- Câu 47 -->
+    <div class="card">
+      <div class="q">Câu 47. Đâu được coi là căn cứ địa cách mạng của cả nước trong kháng chiến chống thực dân Pháp?
+      </div>
+      <div class="ans">Tây Bắc.</div>
+      <div class="ans"><strong>Việt Bắc.</strong></div>
+      <div class="ans">Hà Nội.</div>
+      <div class="ans">Điện Biên Phủ.</div>
+    </div>
+
+    <!-- Câu 48 -->
+    <div class="card">
+      <div class="q">Câu 48. Đại hội II của Đảng đã quyết định đưa Đảng ra hoạt động công khai và lấy tên là:</div>
+      <div class="ans">Đảng Cộng sản Việt Nam.</div>
+      <div class="ans">Đảng Cộng sản Đông Dương.</div>
+      <div class="ans"><strong>Đảng Lao động Việt Nam.</strong></div>
+      <div class="ans">Đảng Nhân dân lao động Việt Nam.</div>
+    </div>
+
+    <!-- Câu 49 -->
+    <div class="card">
+      <div class="q">Câu 49. Tại Đại hội II (1951), Đảng xác định cách mạng Việt Nam trong giai đoạn hiện tại là:</div>
+      <div class="ans">Cách mạng giải phóng dân tộc.</div>
+      <div class="ans">Cách mạng dân chủ tư sản.</div>
+      <div class="ans"><strong>Cách mạng dân tộc dân chủ nhân dân.</strong></div>
+      <div class="ans">Cách mạng xã hội chủ nghĩa.</div>
+    </div>
+
+    <!-- Câu 50 -->
+    <div class="card">
+      <div class="q">Câu 50. Thắng lợi của quân và dân ta trong chiến dịch nào có ý nghĩa quan trọng đã mở ra một thời kỳ đấu tranh mới trong cuộc kháng chiến chống Pháp?</div>
+      <div class="ans">Chiến dịch Việt Bắc (1947).</div>
+      <div class="ans"><strong>Chiến dịch Biên giới (1950).</strong></div>
+      <div class="ans">Chiến dịch Trung du (1950 - 1951).</div>
+      <div class="ans">Chiến dịch Điện Biên Phủ (1954).</div>
+    </div>
+
+    <!-- Câu 51 -->
+    <div class="card">
+      <div class="q">Câu 51. Chiến dịch lịch sử Điện Biên Phủ kết thúc với thắng lợi thuộc về nhân dân Việt Nam vào ngày nào?</div>
+      <div class="ans">06/05/1954.</div>
+      <div class="ans"><strong>07/05/1954.</strong></div>
+      <div class="ans">08/05/1954.</div>
+      <div class="ans">09/05/1954.</div>
+    </div>
+
+    <!-- Câu 52 -->
+    <div class="card">
+      <div class="q">Câu 52. Hiệp định Giơnevơ về chấm dứt chiến tranh, lập lại hoà bình ở Đông Dương đã quy định:</div>
+      <div class="ans">Các nước tham dự Hội nghị cam kết tôn trọng độc lập, chủ quyền, thống nhất và toàn vẹn lãnh thổ của Việt Nam, Lào, Cam-pu-chia; không can thiệp vào công việc nội bộ của ba nước.</div>
+      <div class="ans">Pháp rút quân khỏi 3 nước Đông Dương; ở Việt Nam, vĩ tuyến 17 là giới tuyến quân sự tạm thời và sẽ tổng tuyển cử để thống nhất đất nước.</div>
+      <div class="ans">Cấm đưa quân đội, nhân viên quân sự, vũ khí nước ngoài vào Đông Dương. Nước ngoài không được đặt căn cứ quân sự tại Đông Dương.</div>
+      <div class="ans"><strong>Tất cả các đáp án trên.</strong></div>
+    </div>
+
+    <!-- Câu 53 -->
+    <div class="card">
+      <div class="q">Câu 53. Đảng lãnh đạo đồng thời hai chiến lược cách mạng ở hai miền đất nước có chế độ khác nhau trong giai đoạn lịch sử nào?</div>
+      <div class="ans">A. 1930 - 1945.</div>
+      <div class="ans">B. 1945 - 1954.</div>
+      <div class="ans"><strong>C. 1954 - 1975.</strong></div>
+      <div class="ans">D. 1975 - 1986.</div>
+    </div>
+
+    <!-- Câu 54 -->
+    <div class="card">
+      <div class="q">Câu 54. Vĩ tuyến 17, ranh giới phân chia 2 miền Nam - Bắc nước ta sau Hiệp định Giơnevơ nằm ở đâu?
+      </div>
+      <div class="ans">Sông Nhật Lệ - Quảng Bình.</div>
+      <div class="ans">Sông Gianh - Quảng Bình.</div>
+      <div class="ans"><strong>Sông Bến Hải - Quảng Trị.</strong></div>
+      <div class="ans">Sông Thạch Hãn - Quảng Trị.</div>
+    </div>
+
+    <!-- Câu 55 -->
+    <div class="card">
+      <div class="q">Câu 55. Ai đứng đầu chính quyền tay sai đầu tiên mà đế quốc Mỹ dựng lên ở miền Nam?</div>
+      <div class="ans"><strong>Ngô Đình Diệm.</strong></div>
+      <div class="ans">Nguyễn Khánh.</div>
+      <div class="ans">Nguyễn Văn Thiệu.</div>
+      <div class="ans">Dương Văn Minh.</div>
+    </div>
+
+    <!-- Câu 56 -->
+    <div class="card">
+      <div class="q">Câu 56. Nghị quyết đầu tiên của Đảng về đường lối cách mạng miền Nam được thông qua tại?</div>
+      <div class="ans">Đại hội đại biểu toàn quốc lần thứ II của Đảng (02/1951).</div>
+      <div class="ans">Hội nghị Trung ương Đảng lần thứ 13 (12/1957).</div>
+      <div class="ans"><strong>Hội nghị Trung ương Đảng lần thứ 15 (01/1959).</strong></div>
+      <div class="ans">Đại hội đại biểu toàn quốc lần thứ III của Đảng (09/1960).</div>
+    </div>
+
+    <!-- Câu 57 -->
+    <div class="card">
+      <div class="q">Câu 57. Nghị quyết Hội nghị Trung ương Đảng lần thứ 15 có ý nghĩa như thế nào?</div>
+      <div class="ans">Mở đường cho cách mạng miền Nam tiến lên.</div>
+      <div class="ans">Thể hiện bản lĩnh độc lập tự chủ, sáng tạo của Đảng ta trong những năm tháng khó khăn của cách mạng.</div>
+      <div class="ans">Dẫn tới thắng lợi của nhân dân ta trong phong trào Đồng khởi năm 1960.</div>
+      <div class="ans"><strong>Tất cả các đáp án trên.</strong></div>
+    </div>
+
+    <!-- Câu 58 -->
+    <div class="card">
+      <div class="q">Câu 58. Đại hội nào là “Đại hội xây dựng cnxh ở miền Bắc và đấu tranh hòa bình thống nhất nước nhà”?</div>
+      <div class="ans">Đại hội lần thứ II (1951).</div>
+      <div class="ans"><strong>Đại hội lần thứ III (1960).</strong></div>
+      <div class="ans">Đại hội lần thứ IV (1976).</div>
+      <div class="ans">Đại hội lần thứ V (1982).</div>
+    </div>
+
+    <!-- Câu 59 -->
+    <div class="card">
+      <div class="q">Câu 59. Thắng lợi nào là bước nhảy vọt có ý nghĩa lịch sử chuyển cách mạng miền Nam từ thế giữ gìn lực lượng sang thế tiến công, từ khởi nghĩa từng phần sang chiến tranh cách mạng?</div>
+      <div class="ans"><strong>Thắng lợi của phong trào Đồng khởi (1960).</strong></div>
+      <div class="ans">Chiến thắng Ấp Bắc (1963).</div>
+      <div class="ans">Chiến thắng Bình Giã (1964).</div>
+      <div class="ans">Chiến thắng Vạn Tường (1965).</div>
+    </div>
+
+    <!-- Câu 60 -->
+    <div class="card">
+      <div class="q">Câu 60. Đại hội III của Đảng (9/1960) xác định chiến lược cách mạng nào giữ vai trò quyết định nhất đối với sự phát triển của toàn bộ cách mạng Việt Nam và đối với sự nghiệp thống nhất cả nước?</div>
+      <div class="ans"><strong>Cách mạng xã hội chủ nghĩa ở miền Bắc.</strong></div>
+      <div class="ans">Cách mạng dân tộc dân chủ nhân dân ở miền Nam.</div>
+      <div class="ans">Cách mạng dân tộc dân chủ nhân dân ở miền Bắc.</div>
+      <div class="ans">Cách mạng xã hội chủ nghĩa ở miền Nam.</div>
+    </div>
+
+    <!-- Câu 61 -->
+    <div class="card">
+      <div class="q">Câu 61. Câu nói: “Miền Nam là máu của máu Việt Nam, là thịt của thịt Việt Nam. Sông có thể cạn, núi có thể mòn song chân lý đó không bao giờ thay đổi” là của ai?</div>
+      <div class="ans"><strong>Chủ tịch Hồ Chí Minh.</strong></div>
+      <div class="ans">Tổng Bí thư Trường Chinh.</div>
+      <div class="ans">Tổng Bí thư Lê Duẩn.</div>
+      <div class="ans">Tổng Bí thư Phạm Văn Đồng.</div>
+    </div>
+
+    <!-- Câu 62 -->
+    <div class="card">
+      <div class="q">Câu 62. Quân dân miền Nam đã đánh bại chiến lược chiến tranh nào của đế quốc Mỹ và tay sai giai đoạn 1965 - 1968?</div>
+      <div class="ans">Chiến tranh đơn phương.</div>
+      <div class="ans">Chiến tranh đặc biệt.</div>
+      <div class="ans"><strong>Chiến tranh cục bộ.</strong></div>
+      <div class="ans">Việt Nam hóa chiến tranh.</div>
+    </div>
+
+    <!-- Câu 63 -->
+    <div class="card">
+      <div class="q">Câu 63. Ý nghĩa quan trọng nhất của chiến thắng “Điện Biên Phủ trên không” cuối năm 1972 là gì?
+      </div>
+      <div class="ans">Thể hiện sức mạnh của quân và dân miền Bắc.</div>
+      <div class="ans">Khẳng định ý chí quyết chiến, quyết thắng của quân dân ta.</div>
+      <div class="ans">Đè bẹp ý chí xâm lược của đế quốc Mỹ.</div>
+      <div class="ans"><strong>Buộc chính quyền Mỹ phải trở lại bàn đàm phán và chấp nhận ký Hiệp định Paris về chấm dứt chiến tranh, lập lại hòa bình ở Việt Nam.</strong></div>
+    </div>
+
+    <!-- Câu 64 -->
+    <div class="card">
+      <div class="q">Câu 64. Hội nghị Paris - cuộc đấu trí trên bàn đàm phán ngoại giao giữa Việt Nam và Hoa Kỳ đã kéo
+        dài ntn?</div>
+      <div class="ans"><strong>Từ tháng 5/1968 đến tháng 01/1973.</strong></div>
+      <div class="ans">Từ tháng 01/1969 đến tháng 01/1973.</div>
+      <div class="ans">Từ tháng 5/1968 đến tháng 4/1975.</div>
+      <div class="ans">Tháng 01/1969 đến tháng 4/1975.</div>
+    </div>
+
+    <!-- Câu 65 -->
+    <div class="card">
+      <div class="q">Câu 65. Phương châm tác chiến mà Bộ Chính trị đề ra trong kế hoạch giải phóng miền Nam năm 1975 là:
+      </div>
+      <div class="ans">Đánh nhanh, thắng nhanh.</div>
+      <div class="ans">Đánh chắc, tiến chắc.</div>
+      <div class="ans">Tích cực, chủ động, cơ động, linh hoạt.</div>
+      <div class="ans"><strong>Thần tốc, táo bạo, bất ngờ, chắc thắng.</strong></div>
+    </div>
+
+    <!-- Câu 66 -->
+    <div class="card">
+      <div class="q">Câu 66. Đại thắng mùa Xuân năm 1975 đã mở ra kỷ nguyên gì cho đất nước ta?</div>
+      <div class="ans"><strong>Kỷ nguyên độc lập, thống nhất, đi lên CNXH.</strong></div>
+      <div class="ans">Kỷ nguyên hội nhập quốc tế sâu rộng.</div>
+      <div class="ans">Kỷ nguyên phát triển vươn mình.</div>
+      <div class="ans">Kỷ nguyên số.</div>
+    </div>
+
+    <!-- Câu 67 -->
+    <div class="card">
+      <div class="q">Câu 67. Nhiệm vụ bức thiết nhất ngay sau ngày giải phóng hoàn toàn miền Nam 30/4/1975 được Đảng xác
+        định là:</div>
+      <div class="ans">Khôi phục kinh tế.</div>
+      <div class="ans"><strong>Thống nhất đất nước về mặt nhà nước.</strong></div>
+      <div class="ans">Cải cách giáo dục.</div>
+      <div class="ans">Bảo vệ chủ quyền lãnh thổ.</div>
+    </div>
+
+    <!-- Câu 68 -->
+    <div class="card">
+      <div class="q">Câu 68. Tại Đại hội IV (12/1976), Đảng Lao động Việt Nam được đổi tên thành:</div>
+      <div class="ans">Đảng Cộng sản Đông Dương.</div>
+      <div class="ans">Đảng Dân chủ xã hội.</div>
+      <div class="ans">Đảng Nhân dân Cách mạng.</div>
+      <div class="ans"><strong>Đảng Cộng sản Việt Nam.</strong></div>
+    </div>
+
+    <!-- Câu 69 -->
+    <div class="card">
+      <div class="q">Câu 69. Chủ trương khắc phục những khuyết điểm, sai lầm trong quản lý kinh tế, trong cải tạo xã hội chủ nghĩa, phá bỏ những rào cản để cho “sản xuất bung ra” được nêu lên ở Hội nghị nào của Ban Chấp hành Trung ương Đảng khoá IV?</div>
+      <div class="ans">Hội nghị lần thứ năm (12/1978).</div>
+      <div class="ans"><strong>Hội nghị lần thứ sáu (8/1979).</strong></div>
+      <div class="ans">Hội nghị lần thứ bảy (3/1980).</div>
+      <div class="ans">Hội nghị lần thứ tám (9/1980).</div>
+    </div>
+
+    <!-- Câu 70 -->
+    <div class="card">
+      <div class="q">Câu 70. Chỉ thị 100 CT/TW của Ban Bí thư Trung ương Đảng giúp cởi trói cho nông nghiệp, bước đầu khơi dậy tinh thần làm chủ, phấn khởi của người nông dân được ban hành năm nào?</div>
+      <div class="ans">Năm 1980.</div>
+      <div class="ans"><strong>Năm 1981.</strong></div>
+      <div class="ans">Năm 1988.</div>
+      <div class="ans">Năm 1989.</div>
+    </div>
+
+    <!-- Câu 71 -->
+    <div class="card">
+      <div class="q">Câu 71. Chỉ thị 100 CT/TW của Ban Bí thư Trung ương Đảng đề ra chủ trương nào sau đây?</div>
+      <div class="ans">Phát huy quyền sản xuất kinh doanh của các xí nghiệp quốc doanh.</div>
+      <div class="ans">Mở rộng hình thức trả lương khoán, lương sản phẩm.</div>
+      <div class="ans"><strong>Khoán sản phẩm đến nhóm và người lao động trong hợp tác xã nông nghiệp.</strong></div>
+      <div class="ans">Cải tiến công tác phân phối lưu thông.</div>
+    </div>
+
+    <!-- Câu 72 -->
+    <div class="card">
+      <div class="q">Câu 72. Đại hội nào của Đảng đã chủ trương coi nông nghiệp là mặt trận hàng đầu?</div>
+      <div class="ans">Đại hội III (9/1960).</div>
+      <div class="ans">Đại hội IV (12/1976).</div>
+      <div class="ans"><strong>Đại hội V (3/1982).</strong></div>
+      <div class="ans">B và C đều đúng.</div>
+    </div>
+
+    <!-- Câu 73 -->
+    <div class="card">
+      <div class="q">Câu 73. Đại hội Đảng lần thứ V (3/1982) xác định hai nhiệm vụ chiến lược của cách mạng Việt Nam là:
+      </div>
+      <div class="ans"><strong>Xây dựng thành công CNXH và bảo vệ vững chắc Tổ quốc Việt Nam XHCN.</strong></div>
+      <div class="ans">Đẩy mạnh công nghiệp hóa, hiện đại hóa đất nước và hội nhập quốc tế.</div>
+      <div class="ans">Cải thiện đời sống nhân dân và xây dựng cơ sở vật chất - kỹ thuật của CNXH.</div>
+      <div class="ans">Cả A, B, C đều sai.</div>
+    </div>
+
+    <!-- Câu 74 -->
+    <div class="card">
+      <div class="q">Câu 74. Vì sao Hội nghị lần thứ tám (6-1985) của BCH Trung ương Đảng khoá V được coi là bước đột phá lần thứ 2 về đổi mới kinh tế của Đảng?</div>
+      <div class="ans"><strong>Vì Hội nghị đã quyết định phải dứt khoát xoá bỏ cơ chế tập trung quan liêu bao cấp, thực hiện hạch toán kinh doanh xã hội chủ nghĩa.</strong></div>
+      <div class="ans">Vì Hội nghị đã quyết định thay đổi cơ cấu thành phần kinh tế ở nước ta.</div>
+      <div class="ans">Vì Hội nghị đã chủ trương phá bỏ những rào cản để cho “sản xuất bung ra”.</div>
+      <div class="ans">Vì Hội nghị đã chủ trương xây dựng và tổ chức thực hiện ba chương trình kinh tế lớn.</div>
+    </div>
+
+    <!-- Câu 75 -->
+    <div class="card">
+      <div class="q">Câu 75. Hội nghị nào được coi như bước quyết định cho sự ra đời đường lối đổi mới của Đảng sau đó?
+      </div>
+      <div class="ans">Hội nghị lần thứ sáu của BCH Trung ương Đảng khóa V (8/1979).</div>
+      <div class="ans">Hội nghị lần thứ tám của BCH Trung ương Đảng khóa V (6/1985).</div>
+      <div class="ans">Hội nghị lần thứ chín của BCH Trung ương Đảng khóa V (12/1985).</div>
+      <div class="ans"><strong>Hội nghị Bộ Chính trị khóa V (8/1986).</strong></div>
+    </div>
+
+    <!-- Câu 76 -->
+    <div class="card">
+      <div class="q">Câu 76. Chủ trương xây dựng và tổ chức thực hiện ba chương trình kinh tế lớn về lương thực, thực
+        phẩm; hàng tiêu dùng; hàng xuất khẩu được Đảng đề ra tại Đại hội nào?</div>
+      <div class="ans">Đại hội IV của Đảng.</div>
+      <div class="ans">Đại hội V của Đảng.</div>
+      <div class="ans"><strong>Đại hội VI của Đảng.</strong></div>
+      <div class="ans">Đại hội VII của Đảng.</div>
+    </div>
+
+    <!-- Câu 77 -->
+    <div class="card">
+      <div class="q">Câu 77. Đại hội VI của Đảng (12/1986) rút ra bài học kinh nghiệm quý báu nào dưới đây?</div>
+      <div class="ans">Nắm vững quan điểm bạo lực cách mạng của quần chúng.</div>
+      <div class="ans"><strong>Đảng phải luôn luôn xuất phát từ thực tế, tôn trọng và hành động theo quy luật khách quan.</strong></div>
+      <div class="ans">Giương cao ngọn cờ độc lập dân tộc và CNXH.</div>
+      <div class="ans">Cả A, B và C.</div>
+    </div>
+
+    <!-- Câu 78 -->
+    <div class="card">
+      <div class="q">Câu 78. Đại hội VI năm 1986 được khẳng định là Đại hội đổi mới vì đã:</div>
+      <div class="ans">Quyết định đưa cả nước quá độ lên CNXH.</div>
+      <div class="ans">Thể hiện quyết tâm đưa đất nước ra khỏi khủng hoảng kinh tế - xã hội.</div>
+      <div class="ans"><strong>Đề ra đường lối đổi mới toàn diện đất nước.</strong></div>
+      <div class="ans">Hoàn chỉnh đường lối đổi mới toàn diện đất nước.</div>
+    </div>
+
+    <!-- Câu 79 -->
+    <div class="card">
+      <div class="q">Câu 79. Điền từ hợp lý nhất vào chỗ trống trong câu sau: “Đại hội VI của Đảng chính là Đại hội........đường lối đổi mới toàn diện đất nước”?</div>
+      <div class="ans"><strong>Khởi xướng.</strong></div>
+      <div class="ans">Tiếp tục.</div>
+      <div class="ans">Phát triển.</div>
+      <div class="ans">Kế thừa.</div>
+    </div>
+
+    <!-- Câu 80 -->
+    <div class="card">
+      <div class="q">Câu 80. Đại hội VI của Đảng (12/1986) xác định đổi mới ở nước ta trên lĩnh vực nào là trọng tâm?
+      </div>
+      <div class="ans">Chính trị.</div>
+      <div class="ans"><strong>Kinh tế.</strong></div>
+      <div class="ans">Văn hóa.</div>
+      <div class="ans">Ngoại giao.</div>
+    </div>
+
+    <!-- Câu 81 -->
+    <div class="card">
+      <div class="q">Câu 81. Đại hội VI của Đảng (12/1986) đề ra bao nhiêu phương hướng lớn để phát triển kinh tế?</div>
+      <div class="ans">2.</div>
+      <div class="ans">3.</div>
+      <div class="ans">4.</div>
+      <div class="ans"><strong>5.</strong></div>
+    </div>
+
+    <!-- Câu 82 -->
+    <div class="card">
+      <div class="q">Câu 82. Đâu là văn kiện quan trọng được thông qua tại Đại hội VII (6/1991) của Đảng?</div>
+      <div class="ans">Cương lĩnh xây dựng đất nước trong thời kỳ quá độ lên CNXH.</div>
+      <div class="ans">Chiến lược ổn định và phát triển kinh tế - xã hội đến năm 2000.</div>
+      <div class="ans"><strong>Cả A và B.</strong></div>
+      <div class="ans">Không đáp án nào đúng.</div>
+    </div>
+
+    <!-- Câu 83 -->
+    <div class="card">
+      <div class="q">Câu 83. Đại hội nào đã chính thức đưa tư tưởng Hồ Chí Minh vào nền tảng tư tưởng của Đảng, bên cạnh chủ nghĩa Mác - Lênin và khẳng định đó là kim chỉ nam cho mọi hành động của Đảng và toàn dân tộc?</div>
+      <div class="ans">Đại hội VI của Đảng.</div>
+      <div class="ans"><strong>Đại hội VII của Đảng.</strong></div>
+      <div class="ans">Đại hội VIII của Đảng.</div>
+      <div class="ans">Đại hội IX của Đảng.</div>
+    </div>
+
+    <!-- Câu 84 -->
+    <div class="card">
+      <div class="q">Câu 84. Cương lĩnh xây dựng đất nước trong thời kỳ quá độ lên CNXH thông qua tại Đại hội VII năm 1991 của Đảng đã khẳng định xã hội XHCN mà nhân dân ta xây dựng có mấy đặc trưng?</div>
+      <div class="ans"><strong>6 đặc trưng.</strong></div>
+      <div class="ans">7 đặc trưng.</div>
+      <div class="ans">8 đặc trưng.</div>
+      <div class="ans">10 đặc trưng.</div>
+    </div>
+
+    <!-- Câu 85 -->
+    <div class="card">
+      <div class="q">Câu 85. "Nước ta đã ra khỏi khủng hoảng kinh tế - xã hội nhưng một số mặt còn chưa vững chắc" là đánh giá tổng quát của Đại hội nào?</div>
+      <div class="ans">Đại hội VI của Đảng.</div>
+      <div class="ans">Đại hội VII của Đảng.</div>
+      <div class="ans"><strong>Đại hội VIII của Đảng.</strong></div>
+      <div class="ans">Đại hội IX của Đảng.</div>
+    </div>
+
+    <!-- Câu 86 -->
+    <div class="card">
+      <div class="q">Câu 86. Đại hội nào của Đảng quyết định đưa đất nước ta bước sang thời kỳ đẩy mạnh CN hóa, hiện đại hóa?</div>
+      <div class="ans"><strong>Đại hội VIII của Đảng.</strong></div>
+      <div class="ans">Đại hội IX của Đảng.</div>
+      <div class="ans">Đại hội X của Đảng.</div>
+      <div class="ans">Đại hội XI của Đảng.</div>
+    </div>
+
+    <!-- Câu 87 -->
+    <div class="card">
+      <div class="q">Câu 87. Đại hội VIII của Đảng (7/1996) đã xác định cần phát huy nguồn lực nào là yếu tố cơ bản cho sự phát triển nhanh và bền vững của quá trình công nghiệp hóa, hiện đại hóa ở nước ta?</div>
+      <div class="ans">Khoa học công nghệ.</div>
+      <div class="ans">Tài nguyên thiên nhiên.</div>
+      <div class="ans">Vốn.</div>
+      <div class="ans"><strong>Con người.</strong></div>
+    </div>
+
+    <!-- Câu 88 -->
+    <div class="card">
+      <div class="q">Câu 88. Đại hội VIII của Đảng đã xác định động lực của quá trình CN hóa, hiện đại hóa ở nước ta là:
+      </div>
+      <div class="ans"><strong>Khoa học công nghệ.</strong></div>
+      <div class="ans">Tài nguyên thiên nhiên.</div>
+      <div class="ans">Vốn.</div>
+      <div class="ans">Con người.</div>
+    </div>
+
+    <!-- Câu 89 -->
+    <div class="card">
+      <div class="q">Câu 89. Tại Đại hội VIII (1996) của Đảng, quan điểm nào lần đầu tiên được đề cập một cách chính
+        thức:</div>
+      <div class="ans">Văn hóa là nền tảng tinh thần của xã hội.</div>
+      <div class="ans">Giáo dục hướng tới phát triển con người toàn diện.</div>
+      <div class="ans">Văn hóa soi đường cho quốc dân đi.</div>
+      <div class="ans"><strong>Giáo dục là quốc sách hàng đầu.</strong></div>
+    </div>
+
+    <!-- Câu 90 -->
+    <div class="card">
+      <div class="q">Câu 90. Thế nào là Nhà nước pháp quyền xã hội chủ nghĩa?</div>
+      <div class="ans">Đó là Nhà nước của dân, do dân, vì dân.</div>
+      <div class="ans">Đó là Nhà nước do Đảng Cộng sản Việt Nam lãnh đạo.</div>
+      <div class="ans">Đó là Nhà nước tôn trọng và đảm bảo quyền con người.</div>
+      <div class="ans"><strong>Đó là Nhà nước quản lý xã hội bằng Hiến pháp và pháp luật; pháp luật giữ vị trí tối thượng trong việc điều chỉnh các quan hệ xã hội, người dân được hưởng mọi quyền dân chủ, có quyền tự do sống và làm việc theo khả năng và sở thích của mình trong phạm vi pháp luật cho phép.</strong></div>
+    </div>
+
+    <!-- Câu 91 -->
+    <div class="card">
+      <div class="q">Câu 91. Mặt trận Tổ quốc Việt Nam có vai trò gì?</div>
+      <div class="ans"><strong>Củng cố và tăng cường khối đại đoàn kết dân tộc để góp phần xây dựng và bảo vệ Tổ quốc.</strong></div>
+      <div class="ans">Lãnh đạo nhân dân tiến hành xây dựng CNXH.</div>
+      <div class="ans">Quản lý xã hội bằng Hiến pháp và pháp luật.</div>
+      <div class="ans">Tạo ra của cải cho xã hội.</div>
+    </div>
+
+    <!-- Câu 92 -->
+    <div class="card">
+      <div class="q">Câu 92. Nghị quyết số 03-NQ/TW ngày 16/7/1998 về xây dựng và phát triển nền văn hoá Việt Nam tiên tiến, đậm đà bản sắc dân tộc của Hội nghị Trung ương 5 khoá VIII có ý nghĩa như thế nào?</div>
+      <div class="ans">Như một bản cương lĩnh văn hóa đầu tiên của Đảng.</div>
+      <div class="ans">Như một báo cáo tổng kết của Đảng về xây dựng và phát triển văn hóa Việt Nam.</div>
+      <div class="ans">Như một đề án xây dựng và phát triển văn hóa Việt Nam thời kỳ hội nhập.</div>
+      <div class="ans"><strong>Như một tuyên ngôn văn hóa của Đảng trong thời kỳ đẩy mạnh công nghiệp hóa, hiện đại hóa.</strong></div>
+    </div>
+
+    <!-- Câu 93 -->
+    <div class="card">
+      <div class="q">Câu 93. "Nâng cao năng lực lãnh đạo và sức chiến đấu của Đảng, phát huy sức mạnh toàn dân tộc, đẩy mạnh toàn diện công cuộc đổi mới sớm đưa nước ta ra khỏi tình trạng kém phát triển". Đây là chủ đề của Đại hội Đảng nào?</div>
+      <div class="ans">Đại hội VI của Đảng.</div>
+      <div class="ans">Đại hội VIII của Đảng.</div>
+      <div class="ans"><strong>Đại hội X của Đảng.</strong></div>
+      <div class="ans">Đại hội XII của Đảng.</div>
+    </div>
+
+    <!-- Câu 94 -->
+    <div class="card">
+      <div class="q">Câu 94. Đại hội X của Đảng diễn ra vào thời gian nào?</div>
+      <div class="ans">Tháng 4 năm 2001.</div>
+      <div class="ans"><strong>Tháng 4 năm 2006.</strong></div>
+      <div class="ans">Tháng 1 năm 2011.</div>
+      <div class="ans">Tháng 1 năm 2016.</div>
+    </div>
+
+    <!-- Câu 95 -->
+    <div class="card">
+      <div class="q">Câu 95. Đại hội nào đã quyết định bổ sung, phát triển Cương lĩnh xây dựng đất nước trong thời kỳ quá độ lên CNXH năm 1991?</div>
+      <div class="ans">Đại hội VIII của Đảng.</div>
+      <div class="ans">Đại hội IX của Đảng.</div>
+      <div class="ans">Đại hội X của Đảng.</div>
+      <div class="ans"><strong>Đại hội XI của Đảng.</strong></div>
+    </div>
+
+    <!-- Câu 96 -->
+    <div class="card">
+      <div class="q">Câu 96. Đâu KHÔNG PHẢI là đặc trưng của xã hội XHCN ở nước ta được nêu trong Cương lĩnh xây dựng đất nước trong thời kỳ quá độ lên CNXH ở nước ta (bổ sung, phát triển năm 2011)?</div>
+      <div class="ans">Có nền kinh tế phát triển cao dựa trên lực lượng sản xuất hiện đại và quan hệ sản xuất tiến bộ phù hợp.</div>
+      <div class="ans">Có nền văn hóa tiên tiến, đậm đà bản sắc dân tộc.</div>
+      <div class="ans"><strong>Có Nhà nước dân chủ nhân dân do Đảng Cộng sản Việt Nam lãnh đạo.</strong></div>
+      <div class="ans">Có quan hệ hữu nghị và hợp tác với các nước trên thế giới.</div>
+    </div>
+
+    <!-- Câu 97 -->
+    <div class="card">
+      <div class="q">Câu 97. Đại hội XII của Đảng (2016) đã bầu ai làm Tổng Bí thư?</div>
+      <div class="ans">TBT Lê Khả Phiêu.</div>
+      <div class="ans">TBT Nông Đức Mạnh.</div>
+      <div class="ans"><strong>TBT Nguyễn Phú Trọng.</strong></div>
+      <div class="ans">TBT Tô Lâm.</div>
+    </div>
+
+    <!-- Câu 98 -->
+    <div class="card">
+      <div class="q">Câu 98. Đâu không phải là một trong ba khâu đột phá chiến lược được xác định tại Đại hội XIII của Đảng (2021)?</div>
+      <div class="ans">Hoàn thiện thể chế phát triển.</div>
+      <div class="ans">Phát triển nguồn nhân lực, nhất là nguồn nhân lực chất lượng cao.</div>
+      <div class="ans"><strong>Đổi mới tổ chức bộ máy và phương thức hoạt động của hệ thống chính trị.</strong></div>
+      <div class="ans">Xây dựng kết cấu hạ tầng đồng bộ, hiện đại.</div>
+    </div>
+
+    <!-- Câu 99 -->
+    <div class="card">
+      <div class="q">Câu 99. Công nghiệp hóa, hiện đại hóa ở nước ta là sự nghiệp của thành phần kinh tế nào?</div>
+      <div class="ans">Kinh tế Nhà nước.</div>
+      <div class="ans">Kinh tế tư nhân.</div>
+      <div class="ans">Kinh tế có vốn đầu tư nước ngoài.</div>
+      <div class="ans"><strong>Tất cả các thành phần kinh tế.</strong></div>
+    </div>
+
+    <!-- Câu 100 -->
+    <div class="card">
+      <div class="q">Câu 100. Nghị quyết Đại hội XIII của Đảng đặt mục tiêu đến năm bao nhiêu Việt Nam sẽ trở thành nước công nghiệp theo hướng hiện đại, thu nhập trung bình cao?</div>
+      <div class="ans">2010.</div>
+      <div class="ans">2015.</div>
+      <div class="ans">2020.</div>
+      <div class="ans"><strong>2030.</strong></div>
+    </div>
+
+  </div>
+</body>
+
+</html>
+  </div>
+
+  <script>
+    const TOTAL_QUESTIONS = 20;
+    const PAGE_SIZE = 10;
+    let allQuestions = [];
+    let selectedQuestions = [];
+    let userAnswers = {};
+    let markedQuestions = new Set();
+    let currentPage = 1;
+
+    if (localStorage.getItem('lsd_marked')) {
+      try {
+        markedQuestions = new Set(JSON.parse(localStorage.getItem('lsd_marked')));
+      } catch (e) {}
+    }
+
+    function parseRawData() {
+      const cards = document.querySelectorAll('#raw-data .card');
+      const list = [];
+      cards.forEach((card, idx) => {
+        const qText = card.querySelector('.q').innerText.trim();
+        const ansEls = card.querySelectorAll('.ans');
+        const options = [];
+        let correctText = '';
+        ansEls.forEach(el => {
+          let text = el.innerText.trim();
+          if (el.querySelector('strong')) {
+            correctText = text;
+          }
+          options.push(text);
+        });
+        list.push({
+          id: idx,
+          question: qText,
+          options: options,
+          correct: correctText
+        });
+      });
+      return list;
+    }
+
+    function getRandomQuestions(list, count) {
+      const shuffled = [...list].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
+    }
+
+    function initQuiz() {
+      allQuestions = parseRawData();
+
+      if (allQuestions.length === 0) {
+        alert(
+          "Hiện tại danh sách câu hỏi trống. Hãy dán bộ câu hỏi dạng thẻ <div class='card'> vào khối <div id='raw-data'> ở cuối mã nguồn file html này rồi tải lại trang nhé!"
+        );
+        return;
+      }
+
+      selectedQuestions = getRandomQuestions(allQuestions, TOTAL_QUESTIONS);
+      userAnswers = {};
+      currentPage = 1;
+
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+
+      renderPalette();
+      renderPage();
+      updateStatus();
+    }
+
+    function renderPalette() {
+      const grid = document.getElementById('palette-grid');
+      grid.innerHTML = '';
+      selectedQuestions.forEach((q, i) => {
+        const btn = document.createElement('button');
+        btn.id = `palette-btn-${i}`;
+        btn.innerText = i + 1;
+        btn.className =
+          "h-8 w-full text-xs font-bold rounded-md border transition-all flex items-center justify-center relative";
+
+        if (markedQuestions.has(q.question)) {
+          const indicator = document.createElement('span');
+          indicator.className = "absolute top-0.5 right-0.5 w-1 h-1 bg-rose-600 rounded-full";
+          btn.appendChild(indicator);
+        }
+
+        btn.onclick = () => {
+          const targetPage = Math.floor(i / PAGE_SIZE) + 1;
+          if (currentPage !== targetPage) {
+            currentPage = targetPage;
+            renderPage();
+          }
+          setTimeout(() => {
+            const el = document.getElementById(`q-box-${i}`);
+            if (el) {
+              el.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+              });
+              el.classList.add('focus-highlight');
+              setTimeout(() => el.classList.remove('focus-highlight'), 1000);
+            }
+          }, 50);
+        };
+        grid.appendChild(btn);
+      });
+    }
+
+    // FIX TRIỆT ĐỂ LỖI LOGIC: Đảm bảo đã chọn đáp án thì Indigo, câu chưa chọn thuộc trang hiện tại thì Đen
+    function updatePaletteUI() {
+      const startIndex = (currentPage - 1) * PAGE_SIZE;
+      const endIndex = startIndex + PAGE_SIZE;
+
+      selectedQuestions.forEach((q, i) => {
+        const btn = document.getElementById(`palette-btn-${i}`);
+        if (!btn) return;
+
+        let base =
+          "h-8 w-full text-xs font-bold rounded-md border transition-all flex items-center justify-center relative ";
+
+        if (userAnswers[i] !== undefined) {
+          // Đã chọn đáp án
+          base += "bg-indigo-600 text-white border-indigo-600 shadow-sm";
+        } else if (i >= startIndex && i < endIndex) {
+          // Chưa trả lời nhưng nằm trong trang hiện hành -> Highlight màu Đen Đậm
+          base += "bg-slate-950 text-white border-slate-950 shadow-sm";
+        } else {
+          // Chưa trả lời thuộc trang khác
+          base += "bg-white text-slate-700 border-slate-300 hover:bg-slate-50";
+        }
+        btn.className = base;
+      });
+    }
+
+    function renderPage() {
+      document.getElementById('page-number-ui').innerText = currentPage;
+      const container = document.getElementById('questions-container');
+      container.innerHTML = '';
+
+      const startIndex = (currentPage - 1) * PAGE_SIZE;
+      const endIndex = Math.min(startIndex + PAGE_SIZE, TOTAL_QUESTIONS);
+
+      for (let i = startIndex; i < endIndex; i++) {
+        const qData = selectedQuestions[i];
+        const qBox = document.createElement('div');
+        qBox.id = `q-box-${i}`;
+        qBox.className = "bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 transition-all space-y-4";
+
+        const header = document.createElement('div');
+        header.className = "flex justify-between items-start gap-4";
+
+        const title = document.createElement('h4');
+        title.className = "font-bold text-base text-slate-900 leading-snug";
+        title.innerText = `${qData.question}`;
+        header.appendChild(title);
+
+        const markBtn = document.createElement('button');
+        markBtn.className = "mark-btn p-1 text-slate-300 hover:text-rose-600 transition-colors shrink-0";
+        if (markedQuestions.has(qData.question)) markBtn.classList.add('active');
+        markBtn.innerHTML = `
+          <svg class="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24">
+            <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+          </svg>
+        `;
+        markBtn.onclick = () => {
+          if (markedQuestions.has(qData.question)) {
+            markedQuestions.delete(qData.question);
+            markBtn.classList.remove('active');
+          } else {
+            markedQuestions.add(qData.question);
+            markBtn.classList.add('active');
+          }
+          localStorage.setItem('lsd_marked', JSON.stringify(Array.from(markedQuestions)));
+          renderPalette();
+          updatePaletteUI();
+        };
+        header.appendChild(markBtn);
+        qBox.appendChild(header);
+
+        const ansList = document.createElement('div');
+        ansList.className = "grid grid-cols-1 gap-2.5";
+
+        qData.options.forEach(opt => {
+          const row = document.createElement('div');
+          row.className =
+            "answer-card p-3.5 rounded-xl cursor-pointer text-sm font-semibold text-slate-700 bg-white border border-slate-200 flex items-center gap-3";
+          if (userAnswers[i] === opt) {
+            row.classList.add('selected-answer');
+          }
+
+          const radio = document.createElement('div');
+          radio.className =
+            "w-4 h-4 rounded-full border border-slate-400 flex items-center justify-center shrink-0 bg-white";
+          if (userAnswers[i] === opt) {
+            radio.className = "w-4 h-4 rounded-full border-4 border-indigo-600 shrink-0 bg-white";
+          }
+
+          const txt = document.createElement('span');
+          txt.innerText = opt;
+
+          row.appendChild(radio);
+          row.appendChild(txt);
+
+          row.onclick = () => {
+            userAnswers[i] = opt;
+            qBox.querySelectorAll('.answer-card').forEach(c => c.classList.remove('selected-answer'));
+            qBox.querySelectorAll('.answer-card > div').forEach(r => r.className =
+              "w-4 h-4 rounded-full border border-slate-400 flex items-center justify-center shrink-0 bg-white");
+
+            row.classList.add('selected-answer');
+            radio.className = "w-4 h-4 rounded-full border-4 border-indigo-600 shrink-0 bg-white";
+
+            updateStatus();
+            updatePaletteUI();
+          };
+
+          ansList.appendChild(row);
+        });
+
+        qBox.appendChild(ansList);
+        container.appendChild(qBox);
+      }
+
+      document.getElementById('btn-prev').disabled = (currentPage === 1);
+
+      // THAY ĐỔI THEO YÊU CẦU: Giữ nguyên nút Sau -> ở trang 2 và làm mờ xám (Disable)
+      const nextBtn = document.getElementById('btn-next');
+      if (currentPage * PAGE_SIZE >= TOTAL_QUESTIONS) {
+        nextBtn.disabled = true;
+      } else {
+        nextBtn.disabled = false;
+      }
+
+      updatePaletteUI();
+    }
+
+    function changePage(dir) {
+      currentPage += dir;
+      renderPage();
+      document.getElementById('quiz-screen').scrollIntoView({
+        behavior: 'smooth'
+      });
+    }
+
+    function updateStatus() {
+      const doneCount = Object.keys(userAnswers).length;
+      document.getElementById('completion-status').innerText = `${doneCount}/${TOTAL_QUESTIONS} câu`;
+    }
+
+    function openModal() {
+      const doneCount = Object.keys(userAnswers).length;
+      const remains = TOTAL_QUESTIONS - doneCount;
+      const msg = remains > 0 ? `Bạn còn ${remains} câu hỏi chưa hoàn thành đáp án.` :
+        "Bạn đã hoàn tất đầy đủ tất cả 20 câu hỏi.";
+      document.getElementById('modal-msg').innerText = msg;
+      document.getElementById('submit-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('submit-modal').classList.add('hidden');
+    }
+
+    function calculateScore() {
+      closeModal();
+      let correctCount = 0;
+      let wrongCount = 0;
+      let skippedCount = 0;
+
+      const reportContainer = document.getElementById('report-container');
+      reportContainer.innerHTML = '';
+
+      selectedQuestions.forEach((qData, i) => {
+        const uAns = userAnswers[i];
+        const isCorrect = (uAns === qData.correct);
+
+        let typeClass = '';
+        let statusBadgeHTML = '';
+        let boxColorStyle = ''; // Phân chia màu sắc cực kỳ rõ nét trong report
+
+        if (uAns === undefined) {
+          skippedCount++;
+          typeClass = 'report-skipped';
+          boxColorStyle = 'bg-amber-50/70 border-amber-300/80';
+          statusBadgeHTML =
+            `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wider shrink-0">Bỏ qua</span>`;
+        } else if (isCorrect) {
+          correctCount++;
+          typeClass = 'report-correct';
+          boxColorStyle = 'bg-emerald-50/70 border-emerald-300/80';
+          statusBadgeHTML =
+            `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wider shrink-0">Đúng</span>`;
+        } else {
+          wrongCount++;
+          typeClass = 'report-wrong';
+          boxColorStyle = 'bg-rose-50/70 border-rose-300/80';
+          statusBadgeHTML =
+            `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 uppercase tracking-wider shrink-0">Sai</span>`;
+        }
+
+        if (markedQuestions.has(qData.question)) {
+          typeClass += ' report-marked';
+        }
+
+        const repBox = document.createElement('div');
+        repBox.className = `report-item ${typeClass} ${boxColorStyle} p-5 rounded-2xl shadow-sm border space-y-3`;
+
+        const titleRow = document.createElement('div');
+        titleRow.className = "flex justify-between items-start gap-4";
+
+        const title = document.createElement('h4');
+        title.className = "font-bold text-base text-slate-900";
+        title.innerText = `${qData.question}`;
+        titleRow.appendChild(title);
+        titleRow.innerHTML += statusBadgeHTML;
+        repBox.appendChild(titleRow);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = "grid grid-cols-1 gap-2 text-sm";
+
+        qData.options.forEach(opt => {
+          const row = document.createElement('div');
+          row.className = "p-3 rounded-xl border border-slate-200 bg-white/60 text-slate-600 font-semibold";
+
+          if (opt === qData.correct) {
+            row.className =
+              "p-3 rounded-xl border-2 border-emerald-500 bg-emerald-100 text-emerald-900 font-bold flex items-center gap-2 shadow-sm";
+            row.innerHTML = `
+              <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+              </svg> <span>${opt} (Đáp án đúng)</span>
+            `;
+          } else if (opt === uAns && !isCorrect) {
+            row.className =
+              "p-3 rounded-xl border-2 border-rose-500 bg-rose-100 text-rose-900 font-bold flex items-center gap-2 shadow-sm";
+            row.innerHTML = `
+              <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+              </svg> <span>${opt} (Lựa chọn sai của bạn)</span>
+            `;
+          } else {
+            row.innerText = opt;
+          }
+          optionsDiv.appendChild(row);
+        });
+
+        repBox.appendChild(optionsDiv);
+        reportContainer.appendChild(repBox);
+      });
+
+      document.getElementById('final-score').innerText = `${correctCount}/${TOTAL_QUESTIONS}`;
+      document.getElementById('final-percent').innerText = `${Math.round((correctCount / TOTAL_QUESTIONS) * 100)}%`;
+      document.getElementById('count-correct').innerText = correctCount;
+      document.getElementById('count-wrong').innerText = wrongCount;
+      document.getElementById('count-skipped').innerText = skippedCount;
+
+      let savedCount = 0;
+      selectedQuestions.forEach(q => {
+        if (markedQuestions.has(q.question)) savedCount++;
+      });
+      document.getElementById('count-marked').innerText = savedCount;
+
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.remove('hidden');
+
+      const allBtn = document.querySelector("button[onclick*='all']");
+      filterReport('all', allBtn);
+    }
+
+    function filterReport(type, btnEl) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('filter-active'));
+      if (btnEl && btnEl.classList.contains('filter-btn')) {
+        btnEl.classList.add('filter-active');
+      }
+
+      const items = document.querySelectorAll('.report-item');
+      const label = document.getElementById('filter-label');
+
+      items.forEach(item => {
+        item.classList.add('hidden');
+        if (type === 'all') {
+          item.classList.remove('hidden');
+          label.innerText = `Full ${TOTAL_QUESTIONS} câu`;
+          label.className = "text-indigo-600";
+        } else if (type === 'correct' && item.classList.contains('report-correct')) {
+          item.classList.remove('hidden');
+          label.innerText = "Danh sách câu ĐÚNG";
+          label.className = "text-emerald-700";
+        } else if (type === 'wrong' && item.classList.contains('report-wrong')) {
+          item.classList.remove('hidden');
+          label.innerText = "Danh sách câu SAI";
+          label.className = "text-rose-700";
+        } else if (type === 'skipped' && item.classList.contains('report-skipped')) {
+          item.classList.remove('hidden');
+          label.innerText = "Danh sách câu BỎ QUA";
+          label.className = "text-amber-700";
+        } else if (type === 'marked' && item.classList.contains('report-marked')) {
+          item.classList.remove('hidden');
+          label.innerText = "Danh sách CÂU ĐÃ ĐÁNH DẤU";
+          label.className = "text-indigo-700";
+        }
+      });
+    }
+
+    function resetApp() {
+      if (confirm("Xóa toàn bộ lịch sử câu đã đánh dấu trên trình duyệt này?")) {
+        localStorage.removeItem('lsd_marked');
+        markedQuestions.clear();
+        alert("Đã xóa dữ liệu cũ hoàn tất.");
+        location.reload();
+      }
+    }
+  </script>
+</body>
+
+</html>
