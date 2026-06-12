@@ -21,17 +21,14 @@
       display: none;
     }
 
-    /* Hiệu ứng Glassmorphism Liquid Glass dày dặn, sang trọng */
     .liquid-glass {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border: none;
-      /* HOẶC đổi thành 1px solid #e2e8f0 để có viền mỏng tinh tế */
       box-shadow: 0 12px 35px -10px rgba(15, 23, 42, 0.08);
     }
 
-    /* Thẻ đáp án bo góc sâu mềm mại */
     .answer-card {
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       border: 1px solid #e2e8f0;
@@ -43,7 +40,6 @@
       transform: translateY(-1px);
     }
 
-    /* Trạng thái đáp án được chọn năng động trẻ trung */
     .selected-answer {
       border-color: #6395f1 !important;
       border-width: 2px !important;
@@ -62,7 +58,6 @@
         box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
         border-color: #6366f1;
       }
-
       100% {
         box-shadow: 0 0 0 12px rgba(99, 102, 241, 0);
         border-color: #e2e8f0;
@@ -73,7 +68,6 @@
       display: none;
     }
 
-    /* Bộ lọc kết quả active */
     .filter-active {
       border-color: #6366f1 !important;
       background-color: #ffffff !important;
@@ -85,15 +79,8 @@
     }
 
     @keyframes modal-in {
-      from {
-        opacity: 0;
-        transform: scale(0.96) translateY(10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
+      from { opacity: 0; transform: scale(0.96) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
     .mark-btn.active {
@@ -101,7 +88,6 @@
       fill: #f43f5e;
     }
 
-    /* Tùy biến thanh cuộn dẹt tinh tế mượt mà */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -125,18 +111,18 @@
 <body class="min-h-screen text-slate-900 antialiased pb-16">
 
   <div id="submit-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-950/20 backdrop-blur-md"></div>
+    <div class="absolute inset-0 bg-slate-950/20 backdrop-blur-md cursor-pointer" onclick="closeModal()"></div>
     <div class="relative liquid-glass w-full max-w-sm rounded-2xl p-6 modal-enter">
+      <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 transition-colors z-10">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
       <div class="text-center">
         <h3 class="text-lg font-800 text-slate-900 mb-2 tracking-tight uppercase">Nộp bài kiểm tra?</h3>
         <p id="modal-msg" class="text-sm text-slate-600 mb-6 font-semibold"></p>
         <div class="flex flex-col gap-2">
-          <button onclick="calculateScore()"
-            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all text-xs uppercase tracking-wider shadow-md shadow-indigo-600/10 active:scale-[0.99]">Xác
-            nhận nộp bài</button>
-          <button onclick="closeModal()"
-            class="w-full bg-slate-200/80 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-all text-xs uppercase tracking-wider">Tiếp
-            tục làm bài</button>
+          <button onclick="calculateScore()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all text-xs uppercase tracking-wider shadow-md shadow-indigo-600/10 active:scale-[0.99]">Xác nhận nộp bài</button>
+          <button onclick="closeModal()" class="w-full bg-slate-200/80 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-all text-xs uppercase tracking-wider">Tiếp tục làm bài</button>
         </div>
       </div>
     </div>
@@ -144,60 +130,44 @@
 
   <div id="app" class="max-w-5xl mx-auto py-8 px-4">
 
-    <div id="start-screen"
-      class="max-w-lg mx-auto bg-white/95 rounded-2xl shadow-sm p-8 text-center mt-16 relative overflow-hidden">
+    <div id="start-screen" class="max-w-lg mx-auto bg-white/95 rounded-2xl shadow-sm p-8 text-center mt-16 relative overflow-hidden">
       <div class="absolute top-0 left-0 w-full h-1.5"></div>
       <h1 class="text-2xl font-800 text-slate-900 mb-1.5 tracking-tight uppercase">HỆ THỐNG THI THỬ TRẮC NGHIỆM</h1>
       <h2 class="text-xs font-700 text-indigo-600 mb-6 uppercase tracking-widest">ĐỀ THI THỬ LỊCH SỬ ĐẢNG</h2>
-      <p class="text-slate-600 mb-8 text-sm font-semibold leading-relaxed">Hệ thống tự động tạo đề thi gồm 20 câu hỏi
-        ngẫu nhiên từ ngân hàng dữ liệu gốc giúp hỗ trợ quá trình tự sát hạch kiến thức ôn tập.</p>
+      <p class="text-slate-600 mb-8 text-sm font-semibold leading-relaxed">Hệ thống tự động tạo đề thi gồm 20 câu hỏi ngẫu nhiên từ ngân hàng dữ liệu gốc giúp hỗ trợ quá trình tự sát hạch kiến thức ôn tập.</p>
 
-      <button onclick="initQuiz()"
-        class="bg-slate-950 hover:bg-slate-900 text-white font-bold py-3.5 px-10 rounded-xl transition-all text-xs uppercase tracking-widest shadow-lg shadow-slate-950/10 active:scale-[0.98]">
+      <button onclick="initQuiz()" class="bg-slate-950 hover:bg-slate-900 text-white font-bold py-3.5 px-10 rounded-xl transition-all text-xs uppercase tracking-widest shadow-lg shadow-slate-950/10 active:scale-[0.98]">
         Bắt đầu làm bài
       </button>
 
       <div class="mt-8 border-t border-slate-200 pt-4">
-        <button onclick="resetApp()"
-          class="text-slate-400 hover:text-rose-600 text-[10px] font-700 uppercase tracking-widest transition-colors">
+        <button onclick="resetApp()" class="text-slate-400 hover:text-rose-600 text-[10px] font-700 uppercase tracking-widest transition-colors">
           Cài đặt lại hệ thống & Xóa câu đánh dấu cũ
         </button>
       </div>
     </div>
 
     <div id="quiz-screen" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
-
       <div class="lg:col-span-3">
         <div class="liquid-glass p-4 rounded-2xl sticky top-6 text-center">
           <h3 class="font-800 text-slate-500 mb-4 uppercase text-[10px] tracking-widest">Tiến độ bài làm</h3>
-
           <div id="palette-grid" class="grid grid-cols-5 gap-2 mb-6"></div>
-
-          <button onclick="openModal()"
-            class="w-full bg-slate-950 text-white font-bold py-2.5 rounded-xl hover:bg-slate-900 transition-all text-xs uppercase tracking-wider shadow-md active:scale-[0.98] mb-4">
+          <button onclick="openModal()" class="w-full bg-slate-950 text-white font-bold py-2.5 rounded-xl hover:bg-slate-900 transition-all text-xs uppercase tracking-wider shadow-md active:scale-[0.98] mb-4">
             Nộp bài ngay
           </button>
-
           <div class="text-left space-y-2.5 text-xs font-700 text-slate-500 pt-4 border-t border-slate-300/40">
-            <div class="flex items-center gap-2.5">
-              <div class="w-3.5 h-3.5 bg-indigo-600 rounded-md"></div> Đã chọn đáp án
-            </div>
-            <div class="flex items-center gap-2.5">
-              <div class="w-3.5 h-3.5 bg-slate-950 rounded-md"></div> Câu trang hiện tại
-            </div>
-            <div class="flex items-center gap-2.5">
-              <div class="w-3.5 h-3.5 bg-white rounded-md border border-slate-300"></div> Chưa trả lời (trang khác)
-            </div>
+            <div class="flex items-center gap-2.5"><div class="w-3.5 h-3.5 bg-indigo-600 rounded-md"></div> Đã chọn đáp án</div>
+            <div class="flex items-center gap-2.5"><div class="w-3.5 h-3.5 bg-slate-950 rounded-md"></div> Câu trang hiện tại</div>
+            <div class="flex items-center gap-2.5"><div class="w-3.5 h-3.5 bg-white rounded-md border border-slate-300"></div> Chưa trả lời (trang khác)</div>
           </div>
         </div>
       </div>
 
       <div class="lg:col-span-9 space-y-5">
-        <div class="liquid-glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-l-indigo-600">
+        <div class="liquid-glass p-4 rounded-2xl flex justify-between items-center" style="border: 2px solid rgba(194, 196, 255, 0.7);background-color:rgba(255, 255, 255, 0.24)">
           <div class="flex flex-col">
             <span class="text-[9px] uppercase font-800 text-slate-500 tracking-wider">Phân trang bài thi</span>
-            <span class="font-800 text-lg text-slate-900">TRANG <span id="page-number-ui"
-                class="text-indigo-600">1</span>/2</span>
+            <span class="font-800 text-lg text-slate-900">TRANG <span id="page-number-ui" class="text-indigo-600">1</span>/2</span>
           </div>
           <div class="text-right">
             <span class="text-[9px] uppercase font-800 text-slate-500 tracking-wider">Tiến trình hiện tại</span>
@@ -209,17 +179,14 @@
 
         <div class="flex justify-between items-center bg-white/90 p-4 rounded-2xl border border-slate-200 shadow-sm">
           <div class="flex gap-2">
-            <button id="btn-prev" onclick="changePage(-1)"
-              class="px-5 py-2.5 font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 border border-slate-300/60 transition-all disabled:opacity-30 disabled:pointer-events-none text-xs uppercase tracking-wider">
+            <button id="btn-prev" onclick="changePage(-1)" class="px-5 py-2.5 font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 border border-slate-300/60 transition-all disabled:opacity-30 disabled:pointer-events-none text-xs uppercase tracking-wider">
               ← Trước
             </button>
-            <button id="btn-next" onclick="changePage(1)"
-              class="px-5 py-2.5 font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all text-xs uppercase tracking-wider shadow-md disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-60 disabled:pointer-events-none disabled:shadow-none">
+            <button id="btn-next" onclick="changePage(1)" class="px-5 py-2.5 font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all text-xs uppercase tracking-wider shadow-md disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-60 disabled:pointer-events-none disabled:shadow-none">
               Sau →
             </button>
           </div>
-          <button onclick="openModal()"
-            class="px-6 py-2.5 font-bold text-white bg-slate-950 rounded-xl hover:bg-slate-900 transition-all text-xs uppercase tracking-wider shadow-md">
+          <button onclick="openModal()" class="px-6 py-2.5 font-bold text-white bg-slate-950 rounded-xl hover:bg-slate-900 transition-all text-xs uppercase tracking-wider shadow-md">
             Nộp bài
           </button>
         </div>
@@ -227,36 +194,28 @@
     </div>
 
     <div id="result-screen" class="hidden space-y-6">
-
       <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
-        <h2 class="text-xl font-800 text-center text-slate-900 mb-6 tracking-tight uppercase">Báo cáo kết quả sát hạch
-        </h2>
-
+        <h2 class="text-xl font-800 text-center text-slate-900 mb-6 tracking-tight uppercase">Báo cáo kết quả sát hạch</h2>
         <div class="flex flex-col md:flex-row items-center justify-around gap-6 mb-6 border-b border-slate-200 pb-6">
           <div class="text-center bg-slate-50 p-4 border border-slate-200 rounded-xl w-full md:max-w-[180px]">
             <div class="text-[9px] font-800 text-slate-400 uppercase tracking-widest mb-1">Điểm số đạt</div>
             <div class="text-4xl font-800 text-indigo-600 mb-0.5" id="final-score">0/20</div>
             <div class="text-sm font-700 text-slate-500" id="final-percent">0%</div>
           </div>
-
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 flex-1 w-full">
-            <div onclick="filterReport('correct', this)"
-              class="filter-btn bg-emerald-50/60 p-3 rounded-xl border border-emerald-200 hover:border-emerald-400 cursor-pointer transition-all">
+            <div onclick="filterReport('correct', this)" class="filter-btn bg-emerald-50/60 p-3 rounded-xl border border-emerald-200 hover:border-emerald-400 cursor-pointer transition-all">
               <p class="text-[10px] font-800 text-emerald-700 uppercase tracking-wider mb-0.5">Đúng</p>
               <p id="count-correct" class="text-xl font-800 text-emerald-900">0</p>
             </div>
-            <div onclick="filterReport('wrong', this)"
-              class="filter-btn bg-rose-50/60 p-3 rounded-xl border border-rose-200 hover:border-rose-400 cursor-pointer transition-all">
+            <div onclick="filterReport('wrong', this)" class="filter-btn bg-rose-50/60 p-3 rounded-xl border border-rose-200 hover:border-rose-400 cursor-pointer transition-all">
               <p class="text-[10px] font-800 text-rose-700 uppercase tracking-wider mb-0.5">Sai</p>
               <p id="count-wrong" class="text-xl font-800 text-rose-900">0</p>
             </div>
-            <div onclick="filterReport('skipped', this)"
-              class="filter-btn bg-amber-50/60 p-3 rounded-xl border border-amber-200 hover:border-amber-400 cursor-pointer transition-all">
+            <div onclick="filterReport('skipped', this)" class="filter-btn bg-amber-50/60 p-3 rounded-xl border border-amber-200 hover:border-amber-400 cursor-pointer transition-all">
               <p class="text-[10px] font-800 text-amber-700 uppercase tracking-wider mb-0.5">Bỏ qua</p>
               <p id="count-skipped" class="text-xl font-800 text-amber-900">0</p>
             </div>
-            <div onclick="filterReport('marked', this)"
-              class="filter-btn bg-indigo-50/60 p-3 rounded-xl border border-indigo-200 hover:border-indigo-400 cursor-pointer transition-all">
+            <div onclick="filterReport('marked', this)" class="filter-btn bg-indigo-50/60 p-3 rounded-xl border border-indigo-200 hover:border-indigo-400 cursor-pointer transition-all">
               <p class="text-[10px] font-800 text-indigo-700 uppercase tracking-wider mb-0.5">Đã lưu lại</p>
               <p id="count-marked" class="text-xl font-800 text-indigo-900">0</p>
             </div>
@@ -264,12 +223,8 @@
         </div>
 
         <div class="flex flex-col sm:flex-row gap-2.5">
-          <button onclick="location.reload()"
-            class="flex-1 bg-slate-950 text-white font-bold py-2.5 rounded-xl hover:bg-slate-900 transition-all text-xs uppercase tracking-wider">Làm
-            đề sát hạch mới</button>
-          <button onclick="filterReport('all', this)"
-            class="flex-1 bg-indigo-600 text-white font-bold py-2.5 rounded-xl hover:bg-indigo-700 transition-all text-xs uppercase tracking-wider shadow-md">Xem
-            tất cả câu hỏi</button>
+          <button onclick="location.reload()" class="flex-1 bg-slate-950 text-white font-bold py-2.5 rounded-xl hover:bg-slate-900 transition-all text-xs uppercase tracking-wider">Làm đề sát hạch mới</button>
+          <button onclick="filterReport('all', this)" class="flex-1 bg-indigo-600 text-white font-bold py-2.5 rounded-xl hover:bg-indigo-700 transition-all text-xs uppercase tracking-wider shadow-md">Xem tất cả câu hỏi</button>
         </div>
       </div>
 
@@ -278,7 +233,11 @@
           <div class="w-1.5 h-4 bg-indigo-600 rounded-md"></div>
           Bộ lọc hiển thị: <span id="filter-label" class="text-indigo-600">Full 20 câu</span>
         </h3>
+        
         <div id="report-container" class="space-y-4"></div>
+        
+        <div id="empty-filter-msg" class="hidden text-center py-12 text-base font-800 text-slate-400 tracking-widest border-2 border-dashed border-slate-200 rounded-2xl mt-4">
+        </div>
       </div>
 
     </div>
@@ -1284,6 +1243,15 @@
       } catch (e) {}
     }
 
+    // CẬP NHẬT: Hàm xáo trộn (Shuffle) mảng dùng thuật toán Fisher-Yates
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
     function parseRawData() {
       const cards = document.querySelectorAll('#raw-data .card');
       const list = [];
@@ -1299,10 +1267,12 @@
           }
           options.push(text);
         });
+        
+        // CẬP NHẬT: Gọi hàm shuffleArray(options) để xáo trộn vị trí đáp án
         list.push({
           id: idx,
           question: qText,
-          options: options,
+          options: shuffleArray(options),
           correct: correctText
         });
       });
@@ -1318,9 +1288,7 @@
       allQuestions = parseRawData();
 
       if (allQuestions.length === 0) {
-        alert(
-          "Hiện tại danh sách câu hỏi trống. Hãy dán bộ câu hỏi dạng thẻ <div class='card'> vào khối <div id='raw-data'> ở cuối mã nguồn file html này rồi tải lại trang nhé!"
-        );
+        alert("Hiện tại danh sách câu hỏi trống. Hãy dán bộ câu hỏi dạng thẻ <div class='card'> vào khối <div id='raw-data'> ở cuối mã nguồn file html này rồi tải lại trang nhé!");
         return;
       }
 
@@ -1343,8 +1311,7 @@
         const btn = document.createElement('button');
         btn.id = `palette-btn-${i}`;
         btn.innerText = i + 1;
-        btn.className =
-          "h-8 w-full text-xs font-bold rounded-md border transition-all flex items-center justify-center relative";
+        btn.className = "h-8 w-full text-xs font-bold rounded-md border transition-all flex items-center justify-center relative";
 
         if (markedQuestions.has(q.question)) {
           const indicator = document.createElement('span');
@@ -1361,10 +1328,7 @@
           setTimeout(() => {
             const el = document.getElementById(`q-box-${i}`);
             if (el) {
-              el.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-              });
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
               el.classList.add('focus-highlight');
               setTimeout(() => el.classList.remove('focus-highlight'), 1000);
             }
@@ -1374,7 +1338,6 @@
       });
     }
 
-    // FIX TRIỆT ĐỂ LỖI LOGIC: Đảm bảo đã chọn đáp án thì Indigo, câu chưa chọn thuộc trang hiện tại thì Đen
     function updatePaletteUI() {
       const startIndex = (currentPage - 1) * PAGE_SIZE;
       const endIndex = startIndex + PAGE_SIZE;
@@ -1383,17 +1346,13 @@
         const btn = document.getElementById(`palette-btn-${i}`);
         if (!btn) return;
 
-        let base =
-          "h-8 w-full text-xs font-bold rounded-md border transition-all flex items-center justify-center relative ";
+        let base = "h-8 w-full text-xs font-bold rounded-md border transition-all flex items-center justify-center relative ";
 
         if (userAnswers[i] !== undefined) {
-          // Đã chọn đáp án
           base += "bg-indigo-600 text-white border-indigo-600 shadow-sm";
         } else if (i >= startIndex && i < endIndex) {
-          // Chưa trả lời nhưng nằm trong trang hiện hành -> Highlight màu Đen Đậm
           base += "bg-slate-950 text-white border-slate-950 shadow-sm";
         } else {
-          // Chưa trả lời thuộc trang khác
           base += "bg-white text-slate-700 border-slate-300 hover:bg-slate-50";
         }
         btn.className = base;
@@ -1450,15 +1409,13 @@
 
         qData.options.forEach(opt => {
           const row = document.createElement('div');
-          row.className =
-            "answer-card p-3.5 rounded-xl cursor-pointer text-sm font-semibold text-slate-700 bg-white border border-slate-200 flex items-center gap-3";
+          row.className = "answer-card p-3.5 rounded-xl cursor-pointer text-sm font-semibold text-slate-700 bg-white border border-slate-200 flex items-center gap-3";
           if (userAnswers[i] === opt) {
             row.classList.add('selected-answer');
           }
 
           const radio = document.createElement('div');
-          radio.className =
-            "w-4 h-4 rounded-full border border-slate-400 flex items-center justify-center shrink-0 bg-white";
+          radio.className = "w-4 h-4 rounded-full border border-slate-400 flex items-center justify-center shrink-0 bg-white";
           if (userAnswers[i] === opt) {
             radio.className = "w-4 h-4 rounded-full border-4 border-indigo-600 shrink-0 bg-white";
           }
@@ -1472,8 +1429,7 @@
           row.onclick = () => {
             userAnswers[i] = opt;
             qBox.querySelectorAll('.answer-card').forEach(c => c.classList.remove('selected-answer'));
-            qBox.querySelectorAll('.answer-card > div').forEach(r => r.className =
-              "w-4 h-4 rounded-full border border-slate-400 flex items-center justify-center shrink-0 bg-white");
+            qBox.querySelectorAll('.answer-card > div').forEach(r => r.className = "w-4 h-4 rounded-full border border-slate-400 flex items-center justify-center shrink-0 bg-white");
 
             row.classList.add('selected-answer');
             radio.className = "w-4 h-4 rounded-full border-4 border-indigo-600 shrink-0 bg-white";
@@ -1490,24 +1446,19 @@
       }
 
       document.getElementById('btn-prev').disabled = (currentPage === 1);
-
-      // THAY ĐỔI THEO YÊU CẦU: Giữ nguyên nút Sau -> ở trang 2 và làm mờ xám (Disable)
       const nextBtn = document.getElementById('btn-next');
       if (currentPage * PAGE_SIZE >= TOTAL_QUESTIONS) {
         nextBtn.disabled = true;
       } else {
         nextBtn.disabled = false;
       }
-
       updatePaletteUI();
     }
 
     function changePage(dir) {
       currentPage += dir;
       renderPage();
-      document.getElementById('quiz-screen').scrollIntoView({
-        behavior: 'smooth'
-      });
+      document.getElementById('quiz-screen').scrollIntoView({ behavior: 'smooth' });
     }
 
     function updateStatus() {
@@ -1518,8 +1469,7 @@
     function openModal() {
       const doneCount = Object.keys(userAnswers).length;
       const remains = TOTAL_QUESTIONS - doneCount;
-      const msg = remains > 0 ? `Bạn còn ${remains} câu hỏi chưa hoàn thành đáp án.` :
-        "Bạn đã hoàn tất đầy đủ tất cả 20 câu hỏi.";
+      const msg = remains > 0 ? `Bạn còn ${remains} câu hỏi chưa hoàn thành đáp án.` : "Bạn đã hoàn tất đầy đủ tất cả 20 câu hỏi.";
       document.getElementById('modal-msg').innerText = msg;
       document.getElementById('submit-modal').classList.remove('hidden');
     }
@@ -1529,10 +1479,7 @@
     }
 
     function calculateScore() {
-      window.scrollTo({
-    top: 0,
-    behavior: 'smooth' // Cuộn lên một cách mượt mà nhờ cấu hình mượt có sẵn trên body
-  });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       closeModal();
       let correctCount = 0;
       let wrongCount = 0;
@@ -1547,26 +1494,23 @@
 
         let typeClass = '';
         let statusBadgeHTML = '';
-        let boxColorStyle = ''; // Phân chia màu sắc cực kỳ rõ nét trong report
+        let boxColorStyle = '';
 
         if (uAns === undefined) {
           skippedCount++;
           typeClass = 'report-skipped';
           boxColorStyle = 'bg-amber-50/70 border-amber-300/80';
-          statusBadgeHTML =
-            `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wider shrink-0">Bỏ qua</span>`;
+          statusBadgeHTML = `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wider shrink-0">Bỏ qua</span>`;
         } else if (isCorrect) {
           correctCount++;
           typeClass = 'report-correct';
           boxColorStyle = 'bg-emerald-50/70 border-emerald-300/80';
-          statusBadgeHTML =
-            `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wider shrink-0">Đúng</span>`;
+          statusBadgeHTML = `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wider shrink-0">Đúng</span>`;
         } else {
           wrongCount++;
           typeClass = 'report-wrong';
           boxColorStyle = 'bg-rose-50/70 border-rose-300/80';
-          statusBadgeHTML =
-            `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 uppercase tracking-wider shrink-0">Sai</span>`;
+          statusBadgeHTML = `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 uppercase tracking-wider shrink-0">Sai</span>`;
         }
 
         if (markedQuestions.has(qData.question)) {
@@ -1589,26 +1533,17 @@
         const optionsDiv = document.createElement('div');
         optionsDiv.className = "grid grid-cols-1 gap-2 text-sm";
 
+        // Vẫn duyệt mảng options (lúc này đã được xáo trộn từ trước) để sinh kết quả
         qData.options.forEach(opt => {
           const row = document.createElement('div');
           row.className = "p-3 rounded-xl border border-slate-200 bg-white/60 text-slate-600 font-semibold";
 
           if (opt === qData.correct) {
-            row.className =
-              "p-3 rounded-xl border-2 border-emerald-500 bg-emerald-100 text-emerald-900 font-bold flex items-center gap-2 shadow-sm";
-            row.innerHTML = `
-              <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
-              </svg> <span>${opt} (Đáp án đúng)</span>
-            `;
+            row.className = "p-3 rounded-xl border-2 border-emerald-500 bg-emerald-100 text-emerald-900 font-bold flex items-center gap-2 shadow-sm";
+            row.innerHTML = `<svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> <span>${opt} (Đáp án đúng)</span>`;
           } else if (opt === uAns && !isCorrect) {
-            row.className =
-              "p-3 rounded-xl border-2 border-rose-500 bg-rose-100 text-rose-900 font-bold flex items-center gap-2 shadow-sm";
-            row.innerHTML = `
-              <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-              </svg> <span>${opt} (Lựa chọn sai của bạn)</span>
-            `;
+            row.className = "p-3 rounded-xl border-2 border-rose-500 bg-rose-100 text-rose-900 font-bold flex items-center gap-2 shadow-sm";
+            row.innerHTML = `<svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg> <span>${opt} (Lựa chọn sai của bạn)</span>`;
           } else {
             row.innerText = opt;
           }
@@ -1638,6 +1573,7 @@
       filterReport('all', allBtn);
     }
 
+    // CẬP NHẬT: Thêm logic phát hiện Report trống
     function filterReport(type, btnEl) {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('filter-active'));
       if (btnEl && btnEl.classList.contains('filter-btn')) {
@@ -1646,6 +1582,10 @@
 
       const items = document.querySelectorAll('.report-item');
       const label = document.getElementById('filter-label');
+      const emptyMsgEl = document.getElementById('empty-filter-msg');
+
+      let visibleCount = 0;
+      let emptyText = "";
 
       items.forEach(item => {
         item.classList.add('hidden');
@@ -1653,24 +1593,44 @@
           item.classList.remove('hidden');
           label.innerText = `Full ${TOTAL_QUESTIONS} câu`;
           label.className = "text-indigo-600";
+          visibleCount++;
         } else if (type === 'correct' && item.classList.contains('report-correct')) {
           item.classList.remove('hidden');
           label.innerText = "Danh sách câu ĐÚNG";
           label.className = "text-emerald-700";
+          visibleCount++;
         } else if (type === 'wrong' && item.classList.contains('report-wrong')) {
           item.classList.remove('hidden');
           label.innerText = "Danh sách câu SAI";
           label.className = "text-rose-700";
+          visibleCount++;
         } else if (type === 'skipped' && item.classList.contains('report-skipped')) {
           item.classList.remove('hidden');
           label.innerText = "Danh sách câu BỎ QUA";
           label.className = "text-amber-700";
+          visibleCount++;
         } else if (type === 'marked' && item.classList.contains('report-marked')) {
           item.classList.remove('hidden');
-          label.innerText = "Danh sách CÂU ĐÃ ĐÁNH DẤU";
+          label.innerText = "Danh sách câu ĐÃ LƯU LẠI";
           label.className = "text-indigo-700";
+          visibleCount++;
         }
       });
+
+      // Lắp ghép text hiển thị trống tương ứng theo filter người dùng nhấn
+      if (type === 'all') emptyText = "KHÔNG CÓ CÂU HỎI NÀO";
+      if (type === 'correct') { emptyText = "KHÔNG CÓ CÂU ĐÚNG"; label.innerText = "Danh sách câu ĐÚNG"; label.className = "text-emerald-700"; }
+      if (type === 'wrong') { emptyText = "KHÔNG CÓ CÂU SAI"; label.innerText = "Danh sách câu SAI"; label.className = "text-rose-700"; }
+      if (type === 'skipped') { emptyText = "KHÔNG CÓ CÂU BỎ QUA"; label.innerText = "Danh sách câu BỎ QUA"; label.className = "text-amber-700"; }
+      if (type === 'marked') { emptyText = "KHÔNG CÓ CÂU ĐÃ LƯU LẠI"; label.innerText = "Danh sách câu ĐÃ LƯU LẠI"; label.className = "text-indigo-700"; }
+
+      // Hiển thị khung Empty State nếu số lượng câu lọc được = 0
+      if (visibleCount === 0) {
+        emptyMsgEl.innerText = emptyText;
+        emptyMsgEl.classList.remove('hidden');
+      } else {
+        emptyMsgEl.classList.add('hidden');
+      }
     }
 
     function resetApp() {
