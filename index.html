@@ -1529,6 +1529,10 @@
     }
 
     function calculateScore() {
+      window.scrollTo({
+    top: 0,
+    behavior: 'smooth' // Cuộn lên một cách mượt mà nhờ cấu hình mượt có sẵn trên body
+  });
       closeModal();
       let correctCount = 0;
       let wrongCount = 0;
