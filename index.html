@@ -40,8 +40,10 @@
 
     /* Thanh điều hướng mờ nhẹ trong suốt nằm trên lớp sương */
     .mobile-glass-nav {
-      background: rgba(255, 255, 255, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .answer-card {
@@ -83,10 +85,12 @@
       display: none;
     }
 
-    .filter-active {
-      border-color: #6366f1 !important;
-      background-color: #ffffff !important;
-      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+    /* Trạng thái active cho bộ lọc ở thanh nav dưới của màn kết quả */
+    .filter-report-active {
+      background-color: rgb(15 23 42) !important;
+      color: #ffffff !important;
+      border-color: rgb(15 23 42) !important;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
     }
 
     .modal-enter {
@@ -103,7 +107,6 @@
       fill: #f43f5e;
     }
 
-    /* Ẩn thanh cuộn của khung trượt số trên mobile để giữ thẩm mỹ */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -172,7 +175,6 @@
     </div>
 
     <div id="quiz-screen" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
-      
       <div class="hidden lg:col-span-3 lg:block">
         <div class="liquid-glass p-4 rounded-2xl sticky top-6 text-center">
           <h3 class="font-800 text-slate-500 mb-4 uppercase text-[10px] tracking-widest">Tiến độ bài làm</h3>
@@ -183,7 +185,7 @@
           <div class="text-left space-y-2.5 text-xs font-700 text-slate-500 pt-4 border-t border-slate-300/40">
             <div class="flex items-center gap-2.5"><div class="w-3.5 h-3.5 bg-indigo-600 rounded-md"></div> Đã chọn đáp án</div>
             <div class="flex items-center gap-2.5"><div class="w-3.5 h-3.5 bg-slate-950 rounded-md"></div> Câu trang hiện tại</div>
-            <div class="flex items-center gap-2.5"><div class="w-3.5 h-3.5 bg-white rounded-md border border-slate-300"></div> Chưa trả lời (trang khác)</div>
+            <div class="flex items-center gap-2.5"><div class="w-3.5 h-3.5 bg-white rounded-md border border-slate-300"></div> Chưa trả lời</div>
           </div>
         </div>
       </div>
@@ -204,80 +206,91 @@
 
         <div class="hidden lg:flex justify-between items-center bg-white/90 p-4 rounded-2xl border border-slate-200 shadow-sm">
           <div class="flex gap-2">
-            <button id="btn-prev" onclick="changePage(-1)" class="px-5 py-2.5 font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 border border-slate-300/60 transition-all disabled:opacity-30 disabled:pointer-events-none text-xs uppercase tracking-wider">
-              ← Trước
-            </button>
-            <button id="btn-next" onclick="changePage(1)" class="px-5 py-2.5 font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all text-xs uppercase tracking-wider shadow-md disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-60 disabled:pointer-events-none disabled:shadow-none">
-              Sau →
-            </button>
+            <button id="btn-prev" onclick="changePage(-1)" class="px-5 py-2.5 font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 border border-slate-300/60 transition-all disabled:opacity-30 disabled:pointer-events-none text-xs uppercase tracking-wider">← Trước</button>
+            <button id="btn-next" onclick="changePage(1)" class="px-5 py-2.5 font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all text-xs uppercase tracking-wider shadow-md disabled:pointer-events-none">Sau →</button>
           </div>
-          <button onclick="openModal()" class="px-6 py-2.5 font-bold text-white bg-slate-950 rounded-xl hover:bg-slate-900 transition-all text-xs uppercase tracking-wider shadow-md">
-            Nộp bài
-          </button>
+          <button onclick="openModal()" class="px-6 py-2.5 font-bold text-white bg-slate-950 rounded-xl hover:bg-slate-900 transition-all text-xs uppercase tracking-wider shadow-md">Nộp bài</button>
         </div>
       </div>
     </div>
 
     <div id="mobile-glass-container" class="hidden fixed bottom-0 left-0 right-0 h-28 z-40 bottom-fog-morphism pointer-events-none"></div>
-
     <div id="mobile-fixed-nav" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-3xl mobile-glass-nav p-3 flex items-center justify-between gap-4 rounded-2xl shadow-xl shadow-indigo-950/10">
       <div class="flex-1 overflow-x-auto no-scrollbar py-0.5">
-        <div id="mobile-palette-scroll" class="flex flex-row flex-nowrap gap-2 items-center">
-          </div>
+        <div id="mobile-palette-scroll" class="flex flex-row flex-nowrap gap-2 items-center"></div>
       </div>
-      <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] px-4 py-2.5 rounded-xl uppercase tracking-wider shrink-0 shadow-md shadow-indigo-600/20 active:scale-[0.97]">
+      <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] px-4 py-2.5 rounded-xl uppercase tracking-wider shrink-0 shadow-md active:scale-[0.97]">
         Nộp bài
       </button>
     </div>
 
     <div id="result-screen" class="hidden space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
-        <h2 class="text-xl font-800 text-center text-slate-900 mb-6 tracking-tight uppercase">Báo cáo kết quả kiểm tra</h2>
-        <div class="flex flex-col md:flex-row items-center justify-around gap-6 mb-6 border-b border-slate-200 pb-6">
-          <div class="text-center bg-slate-50 p-4 border border-slate-200 rounded-xl w-full md:max-w-[180px]">
-            <div class="text-[9px] font-800 text-slate-400 uppercase tracking-widest mb-1">Điểm số đạt</div>
-            <div class="text-4xl font-800 text-indigo-600 mb-0.5" id="final-score">0/20</div>
-            <div class="text-sm font-700 text-slate-500" id="final-percent">0%</div>
+      
+      <div id="score-container" class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200 text-center relative overflow-hidden">
+        <h2 class="text-xs font-800 text-slate-400 uppercase tracking-widest mb-1.5">Hệ thống thi thử</h2>
+        <h1 class="text-xl font-800 text-slate-900 tracking-tight uppercase mb-4">Báo cáo kết quả kiểm tra</h1>
+        
+        <div id="score-badge-wrapper" class="inline-flex items-center justify-center rounded-2xl px-6 py-3 gap-5 border transition-all duration-300">
+          <div id="score-left-border" class="text-left pr-5 border-r transition-colors duration-300">
+            <span id="score-label-1" class="block text-[9px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300">Điểm số đạt</span>
+            <span class="text-3xl font-900 leading-none transition-colors duration-300" id="final-score">0/20</span>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 flex-1 w-full">
-            <div onclick="filterReport('correct', this)" class="filter-btn bg-emerald-50/60 p-3 rounded-xl border border-emerald-200 hover:border-emerald-400 cursor-pointer transition-all">
-              <p class="text-[10px] font-800 text-emerald-700 uppercase tracking-wider mb-0.5">Đúng</p>
-              <p id="count-correct" class="text-xl font-800 text-emerald-900">0</p>
-            </div>
-            <div onclick="filterReport('wrong', this)" class="filter-btn bg-rose-50/60 p-3 rounded-xl border border-rose-200 hover:border-rose-400 cursor-pointer transition-all">
-              <p class="text-[10px] font-800 text-rose-700 uppercase tracking-wider mb-0.5">Sai</p>
-              <p id="count-wrong" class="text-xl font-800 text-rose-900">0</p>
-            </div>
-            <div onclick="filterReport('skipped', this)" class="filter-btn bg-amber-50/60 p-3 rounded-xl border border-amber-200 hover:border-amber-400 cursor-pointer transition-all">
-              <p class="text-[10px] font-800 text-amber-700 uppercase tracking-wider mb-0.5">Bỏ qua</p>
-              <p id="count-skipped" class="text-xl font-800 text-amber-900">0</p>
-            </div>
-            <div onclick="filterReport('marked', this)" class="filter-btn bg-indigo-50/60 p-3 rounded-xl border border-indigo-200 hover:border-indigo-400 cursor-pointer transition-all">
-              <p class="text-[10px] font-800 text-indigo-700 uppercase tracking-wider mb-0.5">Đã lưu lại</p>
-              <p id="count-marked" class="text-xl font-800 text-indigo-900">0</p>
-            </div>
+          <div class="text-left">
+            <span id="score-label-2" class="block text-[9px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300">Tỷ lệ chính xác</span>
+            <span class="text-2xl font-800 leading-none transition-colors duration-300" id="final-percent">0%</span>
           </div>
-        </div>
-
-        <div class="flex flex-col sm:flex-row gap-2.5">
-          <button onclick="location.reload()" class="flex-1 bg-slate-950 text-white font-bold py-2.5 rounded-xl hover:bg-slate-900 transition-all text-xs uppercase tracking-wider">Làm đề mới</button>
-          <button onclick="filterReport('all', this)" class="flex-1 bg-indigo-600 text-white font-bold py-2.5 rounded-xl hover:bg-indigo-700 transition-all text-xs uppercase tracking-wider shadow-md">Xem tất cả câu hỏi</button>
         </div>
       </div>
 
       <div id="report-section" class="space-y-4 pt-2">
-        <h3 class="text-sm font-800 text-slate-800 uppercase flex items-center gap-2">
+        <h3 class="text-sm font-800 text-slate-800 uppercase flex items-center gap-2 px-1">
           <div class="w-1.5 h-4 bg-indigo-600 rounded-md"></div>
-          Bộ lọc hiển thị: <span id="filter-label" class="text-indigo-600">Full 20 câu</span>
+          Bộ lọc hiện tại: <span id="filter-label" class="text-indigo-600">Full 20 câu</span>
         </h3>
         
         <div id="report-container" class="space-y-4"></div>
-        
-        <div id="empty-filter-msg" class="hidden text-center py-12 text-base font-800 text-slate-400 tracking-widest border-2 border-dashed border-slate-200 rounded-2xl mt-4">
-        </div>
+        <div id="empty-filter-msg" class="hidden text-center py-12 text-base font-800 text-slate-400 tracking-widest border-2 border-dashed border-slate-200 rounded-2xl mt-4"></div>
+      </div>
+    </div>
+
+    <div id="mobile-report-glass-container" class="hidden fixed bottom-0 left-0 right-0 h-28 z-40 bottom-fog-morphism pointer-events-none"></div>
+    <div id="mobile-report-nav" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-2xl mobile-glass-nav p-2 flex items-center justify-between gap-2 rounded-2xl shadow-xl shadow-indigo-950/10">
+      
+      <div class="flex items-center gap-1 bg-white/50 p-1 rounded-xl border border-slate-200/40 shrink-0">
+        <button onclick="filterReport('correct', this)" class="filter-report-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span id="nav-count-correct">0</span>
+        </button>
+        <button onclick="filterReport('wrong', this)" class="filter-report-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+          <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+          <span id="nav-count-wrong">0</span>
+        </button>
+        <button onclick="filterReport('skipped', this)" class="filter-report-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+          <span id="nav-count-skipped">0</span>
+        </button>
+        <button onclick="filterReport('marked', this)" class="filter-report-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+          <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+          <span id="nav-count-marked">0</span>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-1 shrink-0">
+        <button onclick="filterReport('all', this)" class="filter-report-btn h-8 w-8 rounded-xl flex items-center justify-center bg-white border border-slate-200 text-slate-600 active:scale-[0.95] transition-all" title="Xem tất cả câu hỏi">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+        <button onclick="location.reload()" class="h-8 w-8 rounded-xl flex items-center justify-center bg-indigo-600 border border-indigo-600 text-white shadow-md shadow-indigo-600/20 active:scale-[0.95] transition-all" title="Làm đề mới">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+        </button>
       </div>
 
     </div>
+
   </div>
 
   <div id="raw-data">
@@ -1333,7 +1346,6 @@
       document.getElementById('start-screen').classList.add('hidden');
       document.getElementById('quiz-screen').classList.remove('hidden');
       
-      // Hiển thị cả lớp mờ sương đáy và thanh điều hướng trên mobile/tablet
       document.getElementById('mobile-glass-container').className = "lg:hidden fixed bottom-0 left-0 right-0 h-28 z-40 bottom-fog-morphism pointer-events-none";
       document.getElementById('mobile-fixed-nav').className = "lg:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-3xl mobile-glass-nav p-3 flex items-center justify-between gap-4 rounded-2xl shadow-xl shadow-indigo-950/10";
 
@@ -1548,7 +1560,6 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
       closeModal();
       
-      // Ẩn cả 2 khối khi sang màn hình báo cáo điểm số
       document.getElementById('mobile-glass-container').classList.add('hidden');
       document.getElementById('mobile-fixed-nav').classList.add('hidden');
 
@@ -1589,6 +1600,7 @@
         }
 
         const repBox = document.createElement('div');
+        repBox.id = `report-q-box-${i}`;
         repBox.className = `report-item ${typeClass} ${boxColorStyle} p-5 rounded-2xl shadow-sm border space-y-3`;
 
         const titleRow = document.createElement('div');
@@ -1624,29 +1636,80 @@
         reportContainer.appendChild(repBox);
       });
 
+      // Cập nhật text thô lên giao diện
+      const accuracyPercent = Math.round((correctCount / TOTAL_QUESTIONS) * 100);
       document.getElementById('final-score').innerText = `${correctCount}/${TOTAL_QUESTIONS}`;
-      document.getElementById('final-percent').innerText = `${Math.round((correctCount / TOTAL_QUESTIONS) * 100)}%`;
-      document.getElementById('count-correct').innerText = correctCount;
-      document.getElementById('count-wrong').innerText = wrongCount;
-      document.getElementById('count-skipped').innerText = skippedCount;
+      document.getElementById('final-percent').innerText = `${accuracyPercent}%`;
+
+      // LOGIC MỚI: CHỈ ĐỔ MÀU CHO KHUNG BADGE ĐIỂM SỐ BÊN TRONG
+      const badgeWrapper = document.getElementById('score-badge-wrapper');
+      const leftBorder = document.getElementById('score-left-border');
+      const label1 = document.getElementById('score-label-1');
+      const label2 = document.getElementById('score-label-2');
+      const scoreText = document.getElementById('final-score');
+      const percentText = document.getElementById('final-percent');
+
+      // Reset class màu cũ trước khi gán mới
+      badgeWrapper.className = "inline-flex items-center justify-center rounded-2xl px-6 py-3 gap-5 border transition-all duration-300";
+      leftBorder.className = "text-left pr-5 border-r transition-colors duration-300";
+      label1.className = "block text-[9px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300";
+      label2.className = "block text-[9px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300";
+      scoreText.className = "text-3xl font-900 leading-none transition-colors duration-300";
+      percentText.className = "text-2xl font-800 leading-none transition-colors duration-300";
+
+      if (accuracyPercent < 50) {
+        // THẤP: Chỉ đổi màu div chứa điểm thành tông Đỏ (Rose)
+        badgeWrapper.classList.add('bg-rose-50', 'border-rose-200/70');
+        leftBorder.classList.add('border-rose-200/60');
+        label1.classList.add('text-rose-500');
+        label2.classList.add('text-rose-500');
+        scoreText.classList.add('text-rose-600');
+        percentText.classList.add('text-rose-950');
+      } else if (accuracyPercent < 80) {
+        // TRUNG BÌNH: Chỉ đổi màu div chứa điểm thành tông Vàng/Cam (Amber)
+        badgeWrapper.classList.add('bg-amber-50', 'border-amber-200/70');
+        leftBorder.classList.add('border-amber-200/60');
+        label1.classList.add('text-amber-600');
+        label2.classList.add('text-amber-600');
+        scoreText.classList.add('text-amber-600');
+        percentText.classList.add('text-amber-950');
+      } else {
+        // CAO: Chỉ đổi màu div chứa điểm thành tông Xanh lá (Emerald)
+        badgeWrapper.classList.add('bg-emerald-50', 'border-emerald-200/70');
+        leftBorder.classList.add('border-emerald-200/60');
+        label1.classList.add('text-emerald-600');
+        label2.classList.add('text-emerald-600');
+        scoreText.classList.add('text-emerald-600');
+        percentText.classList.add('text-emerald-950');
+      }
+
+      // Đồng bộ số liệu đếm số câu vào 4 nút filter của Bottom Nav Bar
+      document.getElementById('nav-count-correct').innerText = correctCount;
+      document.getElementById('nav-count-wrong').innerText = wrongCount;
+      document.getElementById('nav-count-skipped').innerText = skippedCount;
 
       let savedCount = 0;
       selectedQuestions.forEach(q => {
         if (markedQuestions.has(q.question)) savedCount++;
       });
-      document.getElementById('count-marked').innerText = savedCount;
+      document.getElementById('nav-count-marked').innerText = savedCount;
 
       document.getElementById('quiz-screen').classList.add('hidden');
       document.getElementById('result-screen').classList.remove('hidden');
 
-      const allBtn = document.querySelector("button[onclick*='all']");
+      // Kích hoạt hiển thị sương mù và thanh điều hướng của Report
+      document.getElementById('mobile-report-glass-container').className = "lg:hidden fixed bottom-0 left-0 right-0 h-28 z-40 bottom-fog-morphism pointer-events-none";
+      document.getElementById('mobile-report-nav').className = "lg:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-2xl mobile-glass-nav p-2 flex items-center justify-between gap-2 rounded-2xl shadow-xl shadow-indigo-950/10";
+
+      // Mặc định kích hoạt bộ lọc xem tất cả
+      const allBtn = document.querySelector("button[title*='Xem tất cả']");
       filterReport('all', allBtn);
     }
 
     function filterReport(type, btnEl) {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('filter-active'));
-      if (btnEl && btnEl.classList.contains('filter-btn')) {
-        btnEl.classList.add('filter-active');
+      document.querySelectorAll('.filter-report-btn').forEach(b => b.classList.remove('filter-report-active'));
+      if (btnEl) {
+        btnEl.classList.add('filter-report-active');
       }
 
       const items = document.querySelectorAll('.report-item');
