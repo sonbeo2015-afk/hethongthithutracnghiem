@@ -244,6 +244,7 @@
   </div>
 
   <div id="raw-data">
+    
     <!DOCTYPE html>
 <html lang="vi">
 
@@ -782,10 +783,10 @@
     <!-- Câu 53 -->
     <div class="card">
       <div class="q">Câu 53. Đảng lãnh đạo đồng thời hai chiến lược cách mạng ở hai miền đất nước có chế độ khác nhau trong giai đoạn lịch sử nào?</div>
-      <div class="ans">1930 - 1945.</div>
-      <div class="ans">1945 - 1954.</div>
-      <div class="ans"><strong>1954 - 1975.</strong></div>
-      <div class="ans">1975 - 1986.</div>
+      <div class="ans">A. 1930 - 1945.</div>
+      <div class="ans">B. 1945 - 1954.</div>
+      <div class="ans"><strong>C. 1954 - 1975.</strong></div>
+      <div class="ans">D. 1975 - 1986.</div>
     </div>
 
     <!-- Câu 54 -->
@@ -827,7 +828,7 @@
 
     <!-- Câu 58 -->
     <div class="card">
-      <div class="q">Câu 58. Đại hội nào là “Đại hội xây dựng chủ nghĩa xã hội ở miền Bắc và đấu tranh hòa bình thống nhất nước nhà”?</div>
+      <div class="q">Câu 58. Đại hội nào là “Đại hội xây dựng cnxh ở miền Bắc và đấu tranh hòa bình thống nhất nước nhà”?</div>
       <div class="ans">Đại hội lần thứ II (1951).</div>
       <div class="ans"><strong>Đại hội lần thứ III (1960).</strong></div>
       <div class="ans">Đại hội lần thứ IV (1976).</div>
@@ -882,7 +883,8 @@
 
     <!-- Câu 64 -->
     <div class="card">
-      <div class="q">Câu 64. Hội nghị Paris - cuộc đấu trí trên bàn đàm phán ngoại giao giữa Việt Nam và Hoa Kỳ đã kéo dài như thế nào?</div>
+      <div class="q">Câu 64. Hội nghị Paris - cuộc đấu trí trên bàn đàm phán ngoại giao giữa Việt Nam và Hoa Kỳ đã kéo
+        dài ntn?</div>
       <div class="ans"><strong>Từ tháng 5/1968 đến tháng 01/1973.</strong></div>
       <div class="ans">Từ tháng 01/1969 đến tháng 01/1973.</div>
       <div class="ans">Từ tháng 5/1968 đến tháng 4/1975.</div>
@@ -910,7 +912,8 @@
 
     <!-- Câu 67 -->
     <div class="card">
-      <div class="q">Câu 67. Nhiệm vụ bức thiết nhất ngay sau ngày giải phóng hoàn toàn miền Nam 30/4/1975 được Đảng xác định là:</div>
+      <div class="q">Câu 67. Nhiệm vụ bức thiết nhất ngay sau ngày giải phóng hoàn toàn miền Nam 30/4/1975 được Đảng xác
+        định là:</div>
       <div class="ans">Khôi phục kinh tế.</div>
       <div class="ans"><strong>Thống nhất đất nước về mặt nhà nước.</strong></div>
       <div class="ans">Cải cách giáo dục.</div>
@@ -993,7 +996,8 @@
 
     <!-- Câu 76 -->
     <div class="card">
-      <div class="q">Câu 76. Chủ trương xây dựng và tổ chức thực hiện ba chương trình kinh tế lớn về lương thực, thực phẩm; hàng tiêu dùng; hàng xuất khẩu được Đảng đề ra tại Đại hội nào?</div>
+      <div class="q">Câu 76. Chủ trương xây dựng và tổ chức thực hiện ba chương trình kinh tế lớn về lương thực, thực
+        phẩm; hàng tiêu dùng; hàng xuất khẩu được Đảng đề ra tại Đại hội nào?</div>
       <div class="ans">Đại hội IV của Đảng.</div>
       <div class="ans">Đại hội V của Đảng.</div>
       <div class="ans"><strong>Đại hội VI của Đảng.</strong></div>
@@ -1112,7 +1116,8 @@
 
     <!-- Câu 89 -->
     <div class="card">
-      <div class="q">Câu 89. Tại Đại hội VIII (1996) của Đảng, quan điểm nào lần đầu tiên được đề cập một cách chính thức:</div>
+      <div class="q">Câu 89. Tại Đại hội VIII (1996) của Đảng, quan điểm nào lần đầu tiên được đề cập một cách chính
+        thức:</div>
       <div class="ans">Văn hóa là nền tảng tinh thần của xã hội.</div>
       <div class="ans">Giáo dục hướng tới phát triển con người toàn diện.</div>
       <div class="ans">Văn hóa soi đường cho quốc dân đi.</div>
@@ -1219,10 +1224,6 @@
     </div>
 
   </div>
-</body>
-
-</html>
-  </div>
 
   <script>
     const TOTAL_QUESTIONS = 20;
@@ -1252,7 +1253,11 @@
       const cards = document.querySelectorAll('#raw-data .card');
       const list = [];
       cards.forEach((card, idx) => {
-        const qText = card.querySelector('.q').innerText.trim();
+        let qText = card.querySelector('.q').innerText.trim();
+        
+        // CHỈNH SỬA: Loại bỏ cụm "Câu 1.", "Câu 12.", "Câu 123:" ở đầu câu hỏi
+        qText = qText.replace(/^Câu\s+\d+\s*[\.:]\s*/i, '').trim();
+
         const ansEls = card.querySelectorAll('.ans');
         const options = [];
         let correctText = '';
@@ -1374,7 +1379,9 @@
 
         const title = document.createElement('h4');
         title.className = "font-bold text-base text-slate-900 leading-snug";
-        title.innerText = `${qData.question}`;
+        
+        // CHỈNH SỬA: Hiển thị số thứ tự trong đề thi thật (VD: "1. Nội dung câu hỏi") thay thế cho số câu gốc
+        title.innerText = `${i + 1}. ${qData.question}`;
         header.appendChild(title);
 
         const markBtn = document.createElement('button');
@@ -1521,7 +1528,9 @@
 
         const title = document.createElement('h4');
         title.className = "font-bold text-base text-slate-900";
-        title.innerText = `${qData.question}`;
+        
+        // CHỈNH SỬA: Hiển thị số câu theo số thứ tự của bài thi tại bảng báo cáo kết quả
+        title.innerText = `${i + 1}. ${qData.question}`;
         titleRow.appendChild(title);
         titleRow.innerHTML += statusBadgeHTML;
         repBox.appendChild(titleRow);
@@ -1529,7 +1538,6 @@
         const optionsDiv = document.createElement('div');
         optionsDiv.className = "grid grid-cols-1 gap-2 text-sm";
 
-        // Vẫn duyệt mảng options (lúc này đã được xáo trộn từ trước) để sinh kết quả
         qData.options.forEach(opt => {
           const row = document.createElement('div');
           row.className = "p-3 rounded-xl border border-slate-200 bg-white/60 text-slate-600 font-semibold";
@@ -1569,7 +1577,6 @@
       filterReport('all', allBtn);
     }
 
-    // CẬP NHẬT: Thêm logic phát hiện Report trống
     function filterReport(type, btnEl) {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('filter-active'));
       if (btnEl && btnEl.classList.contains('filter-btn')) {
@@ -1613,14 +1620,12 @@
         }
       });
 
-      // Lắp ghép text hiển thị trống tương ứng theo filter người dùng nhấn
       if (type === 'all') emptyText = "KHÔNG CÓ CÂU HỎI NÀO";
       if (type === 'correct') { emptyText = "KHÔNG CÓ CÂU ĐÚNG"; label.innerText = "Danh sách câu ĐÚNG"; label.className = "text-emerald-700"; }
       if (type === 'wrong') { emptyText = "KHÔNG CÓ CÂU SAI"; label.innerText = "Danh sách câu SAI"; label.className = "text-rose-700"; }
       if (type === 'skipped') { emptyText = "KHÔNG CÓ CÂU BỎ QUA"; label.innerText = "Danh sách câu BỎ QUA"; label.className = "text-amber-700"; }
       if (type === 'marked') { emptyText = "KHÔNG CÓ CÂU ĐÃ LƯU LẠI"; label.innerText = "Danh sách câu ĐÃ LƯU LẠI"; label.className = "text-indigo-700"; }
 
-      // Hiển thị khung Empty State nếu số lượng câu lọc được = 0
       if (visibleCount === 0) {
         emptyMsgEl.innerText = emptyText;
         emptyMsgEl.classList.remove('hidden');
