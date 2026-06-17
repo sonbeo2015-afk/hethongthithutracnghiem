@@ -85,7 +85,7 @@
       display: none;
     }
 
-    /* Trạng thái active cho bộ lọc ở thanh nav dưới của màn kết quả */
+    /* Trạng thái active cho bộ lọc (Dùng chung cho cả PC và Mobile) */
     .filter-report-active {
       background-color: rgb(15 23 42) !important;
       color: #ffffff !important;
@@ -240,6 +240,32 @@
             <span class="text-2xl font-800 leading-none transition-colors duration-300" id="final-percent">0%</span>
           </div>
         </div>
+
+        <div class="hidden lg:flex items-center justify-center gap-2 mt-6 border-t border-slate-100 pt-5">
+          <button onclick="filterReport('all', this)" class="pc-filter-btn filter-report-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 transition-all">
+            <span>Tất cả câu hỏi</span>
+          </button>
+          <button onclick="filterReport('correct', this)" class="pc-filter-btn filter-report-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <span>Đúng (<span id="pc-count-correct">0</span>)</span>
+          </button>
+          <button onclick="filterReport('wrong', this)" class="pc-filter-btn filter-report-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+            <span>Sai (<span id="pc-count-wrong">0</span>)</span>
+          </button>
+          <button onclick="filterReport('skipped', this)" class="pc-filter-btn filter-report-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            <span>Bỏ qua (<span id="pc-count-skipped">0</span>)</span>
+          </button>
+          <button onclick="filterReport('marked', this)" class="pc-filter-btn filter-report-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+            <span>Đã lưu (<span id="pc-count-marked">0</span>)</span>
+          </button>
+          <button onclick="location.reload()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all ml-2">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+            <span>Làm đề mới</span>
+          </button>
+        </div>
       </div>
 
       <div id="report-section" class="space-y-4 pt-2">
@@ -257,37 +283,40 @@
     <div id="mobile-report-nav" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-2xl mobile-glass-nav p-2 flex items-center justify-between gap-2 rounded-2xl shadow-xl shadow-indigo-950/10">
       
       <div class="flex items-center gap-1 bg-white/50 p-1 rounded-xl border border-slate-200/40 shrink-0">
-        <button onclick="filterReport('correct', this)" class="filter-report-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+        <button onclick="filterReport('correct', this)" class="mobile-filter-btn filter-report-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
           <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span id="nav-count-correct">0</span>
         </button>
-        <button onclick="filterReport('wrong', this)" class="filter-report-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+        <button onclick="filterReport('wrong', this)" class="mobile-filter-btn filter-report-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
           <span class="w-2 h-2 rounded-full bg-rose-500"></span>
           <span id="nav-count-wrong">0</span>
         </button>
-        <button onclick="filterReport('skipped', this)" class="filter-report-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+        <button onclick="filterReport('skipped', this)" class="mobile-filter-btn filter-report-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
           <span class="w-2 h-2 rounded-full bg-amber-500"></span>
           <span id="nav-count-skipped">0</span>
         </button>
-        <button onclick="filterReport('marked', this)" class="filter-report-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+        <button onclick="filterReport('marked', this)" class="mobile-filter-btn filter-report-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
           <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
           <span id="nav-count-marked">0</span>
         </button>
       </div>
 
       <div class="flex items-center gap-1 shrink-0">
-        <button onclick="filterReport('all', this)" class="filter-report-btn h-8 w-8 rounded-xl flex items-center justify-center bg-white border border-slate-200 text-slate-600 active:scale-[0.95] transition-all" title="Xem tất cả câu hỏi">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </button>
-        <button onclick="location.reload()" class="h-8 w-8 rounded-xl flex items-center justify-center bg-indigo-600 border border-indigo-600 text-white shadow-md shadow-indigo-600/20 active:scale-[0.95] transition-all" title="Làm đề mới">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.8" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-          </svg>
-        </button>
-      </div>
+  <button onclick="filterReport('all', this)" class="mobile-filter-btn filter-report-btn px-2.5 py-1.5 rounded-lg flex items-center gap-1 text-xs font-bold bg-white border border-slate-200 text-slate-600 active:scale-[0.95] transition-all">
+    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+    <span class="text-[11px] hidden min-[421px]:block">Tất cả</span>
+  </button>
+
+  <button onclick="location.reload()" class="px-2.5 py-1.5 rounded-lg flex items-center gap-1 text-xs font-extrabold bg-indigo-600 border border-indigo-600 text-white shadow-md shadow-indigo-600/20 active:scale-[0.95] transition-all">
+    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.8" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+    <span class="text-[11px] hidden min-[421px]:block">Đề mới</span>
+  </button>
+</div>
 
     </div>
 
@@ -1416,8 +1445,8 @@
       const endIndex = startIndex + PAGE_SIZE;
 
       selectedQuestions.forEach((q, i) => {
-        const desktopBtn = document.getElementById(`palette-btn-${i}`);
-        const mobileBtn = document.getElementById(`mobile-palette-btn-${i}`);
+        const desktopBtn = document.getElementById('palette-btn-' + i);
+        const mobileBtn = document.getElementById('mobile-palette-btn-' + i);
 
         let baseDesktop = "h-8 w-full text-xs font-bold rounded-md border transition-all flex items-center justify-center relative ";
         let baseMobile = "h-9 w-9 text-xs font-bold rounded-xl border transition-all flex items-center justify-center shrink-0 relative ";
@@ -1636,54 +1665,17 @@
         reportContainer.appendChild(repBox);
       });
 
-      // Cập nhật text thô lên giao diện
+      // Cập nhật text số liệu lên giao diện
       const accuracyPercent = Math.round((correctCount / TOTAL_QUESTIONS) * 100);
       document.getElementById('final-score').innerText = `${correctCount}/${TOTAL_QUESTIONS}`;
       document.getElementById('final-percent').innerText = `${accuracyPercent}%`;
 
-      // LOGIC MỚI: CHỈ ĐỔ MÀU CHO KHUNG BADGE ĐIỂM SỐ BÊN TRONG
-      const badgeWrapper = document.getElementById('score-badge-wrapper');
-      const leftBorder = document.getElementById('score-left-border');
-      const label1 = document.getElementById('score-label-1');
-      const label2 = document.getElementById('score-label-2');
-      const scoreText = document.getElementById('final-score');
-      const percentText = document.getElementById('final-percent');
+      // Đồng bộ số câu vào các thẻ span đếm số lượng trên PC
+      document.getElementById('pc-count-correct').innerText = correctCount;
+      document.getElementById('pc-count-wrong').innerText = wrongCount;
+      document.getElementById('pc-count-skipped').innerText = skippedCount;
 
-      // Reset class màu cũ trước khi gán mới
-      badgeWrapper.className = "inline-flex items-center justify-center rounded-2xl px-6 py-3 gap-5 border transition-all duration-300";
-      leftBorder.className = "text-left pr-5 border-r transition-colors duration-300";
-      label1.className = "block text-[9px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300";
-      label2.className = "block text-[9px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300";
-      scoreText.className = "text-3xl font-900 leading-none transition-colors duration-300";
-      percentText.className = "text-2xl font-800 leading-none transition-colors duration-300";
-
-      if (accuracyPercent < 50) {
-        // THẤP: Chỉ đổi màu div chứa điểm thành tông Đỏ (Rose)
-        badgeWrapper.classList.add('bg-rose-50', 'border-rose-200/70');
-        leftBorder.classList.add('border-rose-200/60');
-        label1.classList.add('text-rose-500');
-        label2.classList.add('text-rose-500');
-        scoreText.classList.add('text-rose-600');
-        percentText.classList.add('text-rose-950');
-      } else if (accuracyPercent < 80) {
-        // TRUNG BÌNH: Chỉ đổi màu div chứa điểm thành tông Vàng/Cam (Amber)
-        badgeWrapper.classList.add('bg-amber-50', 'border-amber-200/70');
-        leftBorder.classList.add('border-amber-200/60');
-        label1.classList.add('text-amber-600');
-        label2.classList.add('text-amber-600');
-        scoreText.classList.add('text-amber-600');
-        percentText.classList.add('text-amber-950');
-      } else {
-        // CAO: Chỉ đổi màu div chứa điểm thành tông Xanh lá (Emerald)
-        badgeWrapper.classList.add('bg-emerald-50', 'border-emerald-200/70');
-        leftBorder.classList.add('border-emerald-200/60');
-        label1.classList.add('text-emerald-600');
-        label2.classList.add('text-emerald-600');
-        scoreText.classList.add('text-emerald-600');
-        percentText.classList.add('text-emerald-950');
-      }
-
-      // Đồng bộ số liệu đếm số câu vào 4 nút filter của Bottom Nav Bar
+      // Đồng bộ số câu vào các thẻ span trên Mobile
       document.getElementById('nav-count-correct').innerText = correctCount;
       document.getElementById('nav-count-wrong').innerText = wrongCount;
       document.getElementById('nav-count-skipped').innerText = skippedCount;
@@ -1692,24 +1684,77 @@
       selectedQuestions.forEach(q => {
         if (markedQuestions.has(q.question)) savedCount++;
       });
+      document.getElementById('pc-count-marked').innerText = savedCount;
       document.getElementById('nav-count-marked').innerText = savedCount;
+
+      // ĐỔ MÀU CHO KHUNG ĐIỂM SỐ BÊN TRONG THEO PHẦN TRĂM
+      const badgeWrapper = document.getElementById('score-badge-wrapper');
+      const leftBorder = document.getElementById('score-left-border');
+      const label1 = document.getElementById('score-label-1');
+      const label2 = document.getElementById('score-label-2');
+      const scoreText = document.getElementById('final-score');
+      const percentText = document.getElementById('final-percent');
+
+      badgeWrapper.className = "inline-flex items-center justify-center rounded-2xl px-6 py-3 gap-5 border transition-all duration-300";
+      leftBorder.className = "text-left pr-5 border-r transition-colors duration-300";
+      label1.className = "block text-[9px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300";
+      label2.className = "block text-[9px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300";
+      scoreText.className = "text-3xl font-900 leading-none transition-colors duration-300";
+      percentText.className = "text-2xl font-800 leading-none transition-colors duration-300";
+
+      if (accuracyPercent < 50) {
+        badgeWrapper.classList.add('bg-rose-50', 'border-rose-200/70');
+        leftBorder.classList.add('border-rose-200/60');
+        label1.classList.add('text-rose-500');
+        label2.classList.add('text-rose-500');
+        scoreText.classList.add('text-rose-600');
+        percentText.classList.add('text-rose-950');
+      } else if (accuracyPercent < 80) {
+        badgeWrapper.classList.add('bg-amber-50', 'border-amber-200/70');
+        leftBorder.classList.add('border-amber-200/60');
+        label1.classList.add('text-amber-600');
+        label2.classList.add('text-amber-600');
+        scoreText.classList.add('text-amber-600');
+        percentText.classList.add('text-amber-950');
+      } else {
+        badgeWrapper.classList.add('bg-emerald-50', 'border-emerald-200/70');
+        leftBorder.classList.add('border-emerald-200/60');
+        label1.classList.add('text-emerald-600');
+        label2.classList.add('text-emerald-600');
+        scoreText.classList.add('text-emerald-600');
+        percentText.classList.add('text-emerald-950');
+      }
 
       document.getElementById('quiz-screen').classList.add('hidden');
       document.getElementById('result-screen').classList.remove('hidden');
 
-      // Kích hoạt hiển thị sương mù và thanh điều hướng của Report
+      // Kích hoạt hiển thị sương mù và thanh điều hướng của Report (Chỉ hiện trên Mobile)
       document.getElementById('mobile-report-glass-container').className = "lg:hidden fixed bottom-0 left-0 right-0 h-28 z-40 bottom-fog-morphism pointer-events-none";
       document.getElementById('mobile-report-nav').className = "lg:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-2xl mobile-glass-nav p-2 flex items-center justify-between gap-2 rounded-2xl shadow-xl shadow-indigo-950/10";
 
-      // Mặc định kích hoạt bộ lọc xem tất cả
-      const allBtn = document.querySelector("button[title*='Xem tất cả']");
-      filterReport('all', allBtn);
+      // Mặc định kích hoạt bộ lọc xem tất cả câu hỏi
+      const defaultBtn = document.querySelector(".pc-filter-btn");
+      filterReport('all', defaultBtn);
     }
 
     function filterReport(type, btnEl) {
+      // Xóa class active ở toàn bộ các nút filter (Cả trên PC và Mobile)
       document.querySelectorAll('.filter-report-btn').forEach(b => b.classList.remove('filter-report-active'));
+      
+      // Thêm class active cho nút vừa click hoặc nút đồng bộ tương ứng
       if (btnEl) {
         btnEl.classList.add('filter-report-active');
+        
+        // Đoạn logic nhỏ giúp đồng bộ trạng thái active chéo giữa PC và Mobile để giao diện mượt mà
+        if (btnEl.classList.contains('pc-filter-btn')) {
+          const index = Array.from(document.querySelectorAll('.pc-filter-btn')).indexOf(btnEl);
+          const mobileBtns = document.querySelectorAll('.mobile-filter-btn');
+          if (mobileBtns[index]) mobileBtns[index].classList.add('filter-report-active');
+        } else if (btnEl.classList.contains('mobile-filter-btn')) {
+          const index = Array.from(document.querySelectorAll('.mobile-filter-btn')).indexOf(btnEl);
+          const pcBtns = document.querySelectorAll('.pc-filter-btn');
+          if (pcBtns[index]) pcBtns[index].classList.add('filter-report-active');
+        }
       }
 
       const items = document.querySelectorAll('.report-item');
