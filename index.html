@@ -205,7 +205,7 @@
       <div class="absolute top-0 left-0 w-full h-1.5"></div>
       <h1 class="text-2xl font-800 text-slate-900 mb-1.5 tracking-tight uppercase">HỆ THỐNG THI THỬ TRẮC NGHIỆM</h1>
       <h2 class="text-xs font-700 text-indigo-600 mb-6 uppercase tracking-widest">ĐỀ THI THỬ XỬ LÍ ẢNH</h2>
-      <p class="text-slate-600 mb-8 text-sm font-semibold leading-relaxed">Hệ thống tự động tạo đề thi gồm 20 câu hỏi
+      <p class="text-slate-600 mb-8 text-sm font-semibold leading-relaxed">Hệ thống tự động tạo đề thi gồm 40 câu hỏi
         ngẫu nhiên từ ngân hàng dữ liệu gốc giúp hỗ trợ quá trình tự kiểm tra kiến thức ôn tập.</p>
 
       <button onclick="initQuiz()"
@@ -250,11 +250,11 @@
           <div class="flex flex-col">
             <span class="text-[9px] uppercase font-800 text-slate-500 tracking-wider">Phân trang bài thi</span>
             <span class="font-800 text-lg text-slate-900">TRANG <span id="page-number-ui"
-                class="text-indigo-600">1</span>/2</span>
+                class="text-indigo-600">1</span>/4</span>
           </div>
           <div class="text-right">
             <span class="text-[9px] uppercase font-800 text-slate-500 tracking-wider">Tiến trình hiện tại</span>
-            <span class="block font-800 text-lg text-indigo-950" id="completion-status">0/20 câu</span>
+            <span class="block font-800 text-lg text-indigo-950" id="completion-status">0/40 câu</span>
           </div>
         </div>
 
@@ -359,7 +359,7 @@
         <div class="liquid-glass p-4 rounded-2xl border border-slate-200 flex items-center gap-2.5">
           <div class="w-1.5 h-4 bg-indigo-600 rounded-md"></div>
           <h3 class="text-xs font-800 text-slate-500 uppercase tracking-wider">
-            Bộ lọc hiện tại: <span id="filter-label" class="text-indigo-600">Full 20 câu</span>
+            Bộ lọc hiện tại: <span id="filter-label" class="text-indigo-600">Full 40 câu</span>
           </h3>
         </div>
 
@@ -830,7 +830,7 @@
     <!-- Câu 38 -->
     <div class="card">
       <div class="q">Câu 38. Cho ảnh xám kích thước 4x4 I = [70 177 112 47;11 81 97 125;24 243 195 114;210 8 203 165], kết quả của phép lọc trung bình với nhân 3x3 của ảnh trên sẽ là:</div>
-      <div class="ans">[0 0 0 0;0 112 132 0;0 119 137 0;0 0 0 0]</div>
+      <div class="ans">[0 0 0 0;0 112 132 0;0 119 117 0;0 0 0 0]</div>
       <div class="ans"><strong>[0 0 0 0;0 112 132 0;0 119 137 0;0 0 0 0]</strong></div>
       <div class="ans">[0 0 0 0;0 112 132 0;0 129 137 0;0 0 0 0]</div>
       <div class="ans">[0 0 0 0;0 122 132 0;0 119 137 0;0 0 0 0]</div>
@@ -1532,7 +1532,7 @@
 
   <script>
     const PAGE_SIZE = 10;
-    const TOTAL_QUESTIONS = 20;
+    const TOTAL_QUESTIONS = 40;
 
     let allQuestions = [];
     let selectedQuestions = [];
@@ -1583,10 +1583,13 @@
           options.push(text);
         });
 
+        // Xáo trộn mảng options chứa các câu trả lời[cite: 1]
+        const shuffledOptions = shuffleArray(options);
+
         list.push({
           question: qText,
           imgSrc: imgSrc,
-          options: options,
+          options: shuffledOptions, // Lưu mảng đã xáo trộn vào dữ liệu[cite: 1]
           correct: correctText
         });
       });
@@ -1597,7 +1600,14 @@
       const shuffled = [...arr].sort(() => 0.5 - Math.random());
       return shuffled.slice(0, num);
     }
-
+    function shuffleArray(array) {
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
     function initQuiz() {
       if (allQuestions.length === 0) {
         alert("Dữ liệu ngân hàng câu hỏi đang trống!");
@@ -1838,7 +1848,7 @@
     function openModal() {
       const doneCount = Object.keys(userAnswers).length;
       const remains = TOTAL_QUESTIONS - doneCount;
-      const msg = remains > 0 ? `Bạn còn ${remains} câu hỏi chưa hoàn thành đáp án.` : "Bạn đã hoàn tất đầy đủ tất cả 20 câu hỏi.";
+      const msg = remains > 0 ? `Bạn còn ${remains} câu hỏi chưa hoàn thành đáp án.` : "Bạn đã hoàn tất đầy đủ tất cả 40 câu hỏi.";
       document.getElementById('modal-msg').innerText = msg;
       document.getElementById('submit-modal').classList.remove('hidden');
     }
