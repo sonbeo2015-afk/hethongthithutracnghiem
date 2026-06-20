@@ -76,7 +76,7 @@
         border-color: #6366f1;
       }
 
-      100% {
+      100 {
         box-shadow: 0 0 0 12px rgba(99, 102, 241, 0);
         border-color: #e2e8f0;
       }
@@ -86,7 +86,7 @@
       display: none;
     }
 
-    /* Trạng thái active cho bộ lọc (Dùng chung cho cả PC và Mobile) */
+    /* Trạng thái active cho bộ lọc */
     .filter-report-active {
       background-color: rgb(15 23 42) !important;
       color: #ffffff !important;
@@ -110,7 +110,7 @@
       }
     }
 
-    /* Cấu hình màu cho nút đánh dấu khi active (Màu vàng hổ phách tinh tế) */
+    /* Cấu hình màu cho nút đánh dấu khi active (Màu vàng hổ phách) */
     .mark-btn.active {
       color: #eab308 !important;
     }
@@ -204,12 +204,12 @@
       class="max-w-lg mx-auto bg-white/95 rounded-2xl shadow-sm p-8 text-center mt-16 relative overflow-hidden">
       <div class="absolute top-0 left-0 w-full h-1.5"></div>
       <h1 class="text-2xl font-800 text-slate-900 mb-1.5 tracking-tight uppercase">HỆ THỐNG THI THỬ TRẮC NGHIỆM</h1>
-      <h2 class="text-xs font-700 text-indigo-600 mb-6 uppercase tracking-widest">ĐỀ THI THỬ XỬ LÍ ẢNH</h2>
+      <h2 class="text-xs font-700 text-indigo-600 mb-6 uppercase tracking-widest">ĐỀ THI THỬ LỊCH SỬ ĐẢNG</h2>
       <p class="text-slate-600 mb-8 text-sm font-semibold leading-relaxed">Hệ thống tự động tạo đề thi gồm 20 câu hỏi
         ngẫu nhiên từ ngân hàng dữ liệu gốc giúp hỗ trợ quá trình tự kiểm tra kiến thức ôn tập.</p>
 
       <button onclick="initQuiz()"
-        class="bg-indigo-700 hover:bg-indigo-900 text-white font-bold py-3.5 px-10 rounded-xl transition-all text-xs uppercase tracking-widest shadow-lg shadow-slate-950/10 active:scale-[0.98]">
+        class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-3.5 px-10 rounded-xl transition-all text-xs uppercase tracking-widest shadow-lg shadow-slate-950/10 active:scale-[0.98]">
         Bắt đầu làm bài
       </button>
 
@@ -290,76 +290,85 @@
       </button>
     </div>
 
-    <div id="result-screen" class="hidden space-y-6">
-
-      <div id="score-container"
-        class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200 text-center relative overflow-hidden">
-        <h2 class="text-xs font-800 text-slate-400 uppercase tracking-widest mb-1.5">Hệ thống thi thử</h2>
-        <h1 class="text-xl font-800 text-slate-900 tracking-tight uppercase mb-4">Báo cáo kết quả kiểm tra</h1>
-
-        <div id="score-badge-wrapper"
-          class="inline-flex items-center justify-center rounded-2xl px-6 py-3 gap-5 border transition-all duration-300">
-          <div id="score-left-border" class="text-left pr-5 border-r transition-colors duration-300">
-            <span id="score-label-1"
-              class="block text-[9px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300">Điểm số
-              đạt</span>
-            <span class="text-3xl font-900 leading-none transition-colors duration-300" id="final-score">0/20</span>
+    <div id="result-screen" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <div class="col-span-1 lg:col-span-4">
+        <div id="score-container" class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200 sticky top-6 text-center space-y-5">
+          <div>
+            <h2 class="text-[10px] font-800 text-slate-400 uppercase tracking-widest mb-1">Hệ thống thi thử</h2>
+            <h1 class="text-base font-800 text-slate-900 tracking-tight uppercase">Báo cáo kết quả</h1>
           </div>
-          <div class="text-left">
-            <span id="score-label-2"
-              class="block text-[9px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300">Tỷ lệ
-              chính xác</span>
-            <span class="text-2xl font-800 leading-none transition-colors duration-300" id="final-percent">0%</span>
-          </div>
-        </div>
 
-        <div class="hidden lg:flex items-center justify-center gap-2 mt-6 border-t border-slate-100 pt-5">
-          <button onclick="filterReport('all', this)"
-            class="pc-filter-btn filter-report-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 transition-all">
-            <span>Tất cả câu hỏi</span>
-          </button>
-          <button onclick="filterReport('correct', this)"
-            class="pc-filter-btn filter-report-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            <span>Đúng (<span id="pc-count-correct">0</span>)</span>
-          </button>
-          <button onclick="filterReport('wrong', this)"
-            class="pc-filter-btn filter-report-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
-            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-            <span>Sai (<span id="pc-count-wrong">0</span>)</span>
-          </button>
-          <button onclick="filterReport('skipped', this)"
-            class="pc-filter-btn filter-report-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
-            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-            <span>Bỏ qua (<span id="pc-count-skipped">0</span>)</span>
-          </button>
-          <button onclick="filterReport('marked', this)"
-            class="pc-filter-btn filter-report-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
-            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-            <span>Đã lưu (<span id="pc-count-marked">0</span>)</span>
-          </button>
-          <button onclick="location.reload()"
-            class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all ml-2">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-            </svg>
-            <span>Làm đề mới</span>
-          </button>
+          <div id="score-badge-wrapper" class="flex items-center justify-center rounded-2xl px-4 py-3 gap-4 border transition-all duration-300 w-full">
+            <div id="score-left-border" class="text-left pr-4 border-r transition-colors duration-300">
+              <span id="score-label-1" class="block text-[8px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300">Điểm đạt</span>
+              <span class="text-2xl font-900 leading-none transition-colors duration-300" id="final-score">0/20</span>
+            </div>
+            <div class="text-left">
+              <span id="score-label-2" class="block text-[8px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300">Chính xác</span>
+              <span class="text-xl font-800 leading-none transition-colors duration-300" id="final-percent">0%</span>
+            </div>
+          </div>
+
+          <div class="hidden lg:flex flex-col gap-2 border-t border-slate-100 pt-4 text-left">
+            <span class="text-[9px] font-800 text-slate-400 uppercase tracking-wider px-1 mb-1">Phân loại câu hỏi</span>
+            
+            <button onclick="filterReport('all', this)"
+              class="pc-filter-btn filter-report-btn flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 transition-all">
+              <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+              <span class="flex-1">Tất cả câu hỏi</span>
+            </button>
+            <button onclick="filterReport('correct', this)"
+              class="pc-filter-btn filter-report-btn flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span class="flex-1">Đúng</span>
+              <span id="pc-count-correct" class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-extrabold">0</span>
+            </button>
+            <button onclick="filterReport('wrong', this)"
+              class="pc-filter-btn filter-report-btn flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span class="flex-1">Sai</span>
+              <span id="pc-count-wrong" class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-extrabold">0</span>
+            </button>
+            <button onclick="filterReport('skipped', this)"
+              class="pc-filter-btn filter-report-btn flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span class="flex-1">Bỏ qua</span>
+              <span id="pc-count-skipped" class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-extrabold">0</span>
+            </button>
+            <button onclick="filterReport('marked', this)"
+              class="pc-filter-btn filter-report-btn flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 transition-all">
+              <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+              <span class="flex-1">Đã lưu</span>
+              <span id="pc-count-marked" class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-extrabold">0</span>
+            </button>
+
+            <button onclick="location.reload()"
+              class="flex items-center justify-center gap-2 w-full mt-2 px-4 py-3 rounded-xl text-xs font-extrabold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/10 transition-all">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+              <span>Làm đề mới</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div id="report-section" class="space-y-4 pt-2">
-        <h3 class="text-sm font-800 text-slate-800 uppercase flex items-center gap-2 px-1">
+      <div id="report-section" class="col-span-1 lg:col-span-8 space-y-4">
+        <div class="liquid-glass p-4 rounded-2xl border border-slate-200 flex items-center gap-2.5">
           <div class="w-1.5 h-4 bg-indigo-600 rounded-md"></div>
-          Bộ lọc hiện tại: <span id="filter-label" class="text-indigo-600">Full 20 câu</span>
-        </h3>
+          <h3 class="text-xs font-800 text-slate-500 uppercase tracking-wider">
+            Bộ lọc hiện tại: <span id="filter-label" class="text-indigo-600">Full 20 câu</span>
+          </h3>
+        </div>
 
         <div id="report-container" class="space-y-4"></div>
         <div id="empty-filter-msg"
-          class="hidden text-center py-12 text-base font-800 text-slate-400 tracking-widest border-2 border-dashed border-slate-200 rounded-2xl mt-4">
+          class="hidden text-center py-12 text-sm font-800 text-slate-400 tracking-widest border-2 border-dashed border-slate-200 rounded-2xl mt-4">
         </div>
       </div>
+
     </div>
 
     <div id="mobile-report-glass-container"
@@ -1591,7 +1600,7 @@
 
     function initQuiz() {
       if (allQuestions.length === 0) {
-        alert("Dữ liệu ngân hàng câu hỏi đang trống! Hãy chắc chắn rằng bạn đã tải tệp xla.html cùng thư mục hoặc dán đè dữ liệu của nó vào thẻ <div id=\"raw-data\"> ở cuối mã nguồn file html này rồi tải lại trang nhé!");
+        alert("Dữ liệu ngân hàng câu hỏi đang trống!");
         return;
       }
       selectedQuestions = getRandomQuestions(allQuestions, TOTAL_QUESTIONS);
@@ -1620,7 +1629,6 @@
         btn.className = "h-8 w-full text-xs font-bold rounded-md border transition-all flex items-center justify-center relative";
         if (markedQuestions.has(q.question)) {
           const indicator = document.createElement('span');
-          // Đổi màu chấm tròn báo hiệu sang màu vàng hổ phách cho đồng bộ
           indicator.className = "absolute top-0.5 right-0.5 w-1 h-1 bg-amber-500 rounded-full";
           btn.appendChild(indicator);
         }
@@ -1639,7 +1647,6 @@
         btn.className = "h-9 w-9 text-xs font-bold rounded-xl border transition-all flex items-center justify-center shrink-0 relative";
         if (markedQuestions.has(q.question)) {
           const indicator = document.createElement('span');
-          // Đổi màu chấm tròn báo hiệu sang màu vàng hổ phách cho đồng bộ
           indicator.className = "absolute top-1 right-1 w-1 h-1 bg-amber-500 rounded-full";
           btn.appendChild(indicator);
         }
@@ -1697,13 +1704,12 @@
         header.className = "flex justify-between items-start gap-4";
 
         const title = document.createElement('h4');
-        title.className = "font-bold text-base text-slate-900 leading-snug flex-1 whitespace-pre-line"; // Thêm whitespace-pre-line để nhận diện dấu xuống dòng \n
-        title.innerHTML = `<span class="text-2xl block mb-1 text-indigo-600">${i + 1}</span>${qData.question}`; 
+        title.className = "font-bold text-base text-slate-900 leading-snug flex-1";
+        title.innerHTML = `<span class="text-3xl block mb-1 text-indigo-600 font-extrabold">${i + 1}</span>${qData.question}`;
         header.appendChild(title);
 
         const markBtn = document.createElement('button');
-        // Khi di chuột đổi hiệu ứng sang màu vàng hổ phách dễ nhìn
-        markBtn.className = "mark-btn p-1 text-slate-400 hover:text-amber-500 transition-colors shrink-0";
+        markBtn.className = "mark-btn p-1 text-slate-400 hover:text-amber-500 transition-colors shrink-0 mt-1";
         if (markedQuestions.has(qData.question)) markBtn.classList.add('active');
         markBtn.innerHTML = `
           <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
@@ -1755,7 +1761,6 @@
 
       const totalPages = Math.ceil(TOTAL_QUESTIONS / PAGE_SIZE);
       const mobileNavContainer = document.createElement('div');
-      // Thanh nút điều hướng Mobile dưới chân câu hỏi cũng được đồng bộ thiết kế viền tím transparent
       mobileNavContainer.className = "lg:hidden flex justify-between items-center p-4 rounded-2xl mt-4";
       mobileNavContainer.style.border = "2px solid rgba(194, 196, 255, 0.7)";
       mobileNavContainer.style.backgroundColor = "rgba(255, 255, 255, 0.24)";
@@ -1838,7 +1843,6 @@
       document.getElementById('submit-modal').classList.remove('hidden');
     }
 
-    // Modal quản lý Reset
     function openResetModal() {
       document.getElementById('reset-modal').classList.remove('hidden');
     }
@@ -1883,17 +1887,17 @@
           skippedCount++;
           typeClass = 'report-skipped';
           boxColorStyle = 'bg-amber-50/70 border-amber-300/80';
-          statusBadgeHTML = `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wider shrink-0">Bỏ qua</span>`;
+          statusBadgeHTML = `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wider shrink-0 mt-1">Bỏ qua</span>`;
         } else if (isCorrect) {
           correctCount++;
           typeClass = 'report-correct';
           boxColorStyle = 'bg-emerald-50/70 border-emerald-300/80';
-          statusBadgeHTML = `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wider shrink-0">Đúng</span>`;
+          statusBadgeHTML = `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wider shrink-0 mt-1">Đúng</span>`;
         } else {
           wrongCount++;
           typeClass = 'report-wrong';
           boxColorStyle = 'bg-rose-50/70 border-rose-300/80';
-          statusBadgeHTML = `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 uppercase tracking-wider shrink-0">Sai</span>`;
+          statusBadgeHTML = `<span class="text-[10px] font-700 px-2.5 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 uppercase tracking-wider shrink-0 mt-1">Sai</span>`;
         }
 
         if (markedQuestions.has(qData.question)) {
@@ -1908,8 +1912,8 @@
         titleRow.className = "flex justify-between items-start gap-4";
 
         const title = document.createElement('h4');
-        title.className = "font-bold text-base text-slate-900 leading-snug";
-        title.innerHTML = `<span class="text-2xl block mb-1 text-indigo-600">${i + 1}</span>${qData.question}`; 
+        title.className = "font-bold text-base text-slate-900 leading-snug flex-1";
+        title.innerHTML = `<span class="text-3xl block mb-1 text-indigo-600 font-extrabold">${i + 1}</span>${qData.question}`;
 
         titleRow.appendChild(title);
         titleRow.innerHTML += statusBadgeHTML;
@@ -1972,10 +1976,10 @@
       const scoreText = document.getElementById('final-score');
       const percentText = document.getElementById('final-percent');
 
-      badgeWrapper.className = "inline-flex items-center justify-center rounded-2xl px-6 py-3 gap-5 border transition-all duration-300";
-      leftBorder.className = "text-left pr-5 border-r transition-colors duration-300";
-      label1.className = "block text-[9px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300";
-      label2.className = "block text-[9px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300";
+      badgeWrapper.className = "flex items-center justify-center rounded-2xl px-4 py-3 gap-4 border transition-all duration-300 w-full";
+      leftBorder.className = "text-left pr-4 border-r transition-colors duration-300";
+      label1.className = "block text-[8px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300";
+      label2.className = "block text-[8px] font-800 uppercase tracking-wider mb-0.5 transition-colors duration-300";
 
       if (accuracyPercent >= 80) {
         badgeWrapper.classList.add('bg-emerald-50', 'border-emerald-200');
